@@ -12,8 +12,6 @@ describe("NFT contract", () => {
   const metadata = {
     name: "WeareFlex",
     symbol: "WRFX",
-    baseTokenURI: "",
-    marketplaceAddress: ""
   }
   before(async () => {
     let weareFlexFactory = await ethers.getContractFactory("WeareFlex")

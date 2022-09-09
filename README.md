@@ -1,13 +1,15 @@
-# Sample Hardhat Project
+# Weareflex Smart Contract
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+Smart contract deployed to matic
 
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-GAS_REPORT=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
+[Explorer](https://mumbai.polygonscan.com/address/0x3e35Db6dB009bf9786657C430A3a292568db75E3#code)
 ```
+0x3e35Db6dB009bf9786657C430A3a292568db75E3
+```
+
+# Testing and development
+
+- Install Packages - `npm i`
+- Run tests - `npm run test`
+- After chaging contract write tests(if required) in `test/WeareFlex.ts` and run `npm run test` again
+- Create new test file if required
