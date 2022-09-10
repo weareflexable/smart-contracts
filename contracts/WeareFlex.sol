@@ -34,7 +34,6 @@ contract FlexableNFT is
 {
     using Counters for Counters.Counter;
 
-    bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
     bytes32 public constant FLEXABLENFT_ADMIN_ROLE =
         keccak256("FLEXABLENFT_ADMIN_ROLE");
     bytes32 public constant WEARFLEX_OPERATOR_ROLE =
