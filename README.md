@@ -11,5 +11,5 @@ Smart contract deployed to matic
 
 - Install Packages - `npm i`
 - Run tests - `npm run test`
-- After chaging contract write tests(if required) in `test/WeareFlex.ts` and run `npm run test` again
+- After chaging contract write tests(if required) in `test/FlexableNFT.ts` and run `npm run test` again
 - Create new test file if required

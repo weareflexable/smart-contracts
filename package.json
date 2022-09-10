@@ -10,6 +10,6 @@
   "scripts": {
     "test": "hardhat test",
     "deploy": "hardhat run scripts/deploy.ts --network $NETWORK",
-    "verify": "npx hardhat verify --network $NETWORK $CONTRACT_ADDRESS WeareFlex WRFX"
+    "verify": "npx hardhat verify --network $NETWORK $CONTRACT_ADDRESS FlexableNFT FLEX"
   }
 }

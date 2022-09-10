@@ -3,15 +3,15 @@ import { ethers } from "hardhat";
 async function main() {
 
   const metadata = {
-    name: "WeareFlex",
-    symbol: "WRFX",
+    name: "FlexableNFT",
+    symbol: "FLEX",
   }
-  const WeareFlex = await ethers.getContractFactory("WeareFlex");
-  const weareFlex = await WeareFlex.deploy(metadata.name, metadata.symbol);
+  const FlexableNFT = await ethers.getContractFactory("FlexableNFT");
+  const flexableNFT = await FlexableNFT.deploy(metadata.name, metadata.symbol);
 
-  await weareFlex.deployed();
+  await flexableNFT.deployed();
 
-  console.log(`WeareFlex deployed to ${weareFlex.address}`);
+  console.log(`FlexableNFT deployed to ${flexableNFT.address}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

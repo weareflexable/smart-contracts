@@ -1,82 +1,83 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { expect } from "chai"
 import { ethers } from "hardhat"
-import { WeareFlex } from "../typechain-types"
+import { FlexableNFT } from "../typechain-types"
 
 describe("NFT contract", () => {
   let [owner, creator, creator2, buyer, operator]: SignerWithAddress[] = new Array(5)
   before(async () => {
     [owner, operator, creator, creator2, buyer] = await ethers.getSigners()
   })
-  let weareFlex: WeareFlex
+  let flexableNFT: FlexableNFT
   const metadata = {
-    name: "WeareFlex",
-    symbol: "WRFX",
+    name: "FlexableNFT",
+    symbol: "FLEX",
   }
   before(async () => {
-    let weareFlexFactory = await ethers.getContractFactory("WeareFlex")
-    weareFlex = await weareFlexFactory.deploy(metadata.name, metadata.symbol)
+    let flexableNFTFactory = await ethers.getContractFactory("FlexableNFT")
+    flexableNFT = await flexableNFTFactory.deploy(metadata.name, metadata.symbol)
   })
-  it("Should return the right name and symbol of the token once WeareFlex is deployed", async () => {
-    expect(await weareFlex.name()).to.equal(metadata.name)
-    expect(await weareFlex.symbol()).to.equal(metadata.symbol)
+  it("Should return the right name and symbol of the token once FlexableNFT is deployed", async () => {
+    expect(await flexableNFT.name()).to.equal(metadata.name)
+    expect(await flexableNFT.symbol()).to.equal(metadata.symbol)
   })
 
   it("Should get the right owner", async () => {
-    const WEAREFLEX_ADMIN_ROLE = await weareFlex.WEAREFLEX_ADMIN_ROLE()
-    expect(await weareFlex.getRoleMember(WEAREFLEX_ADMIN_ROLE, 0)).to.be.equal(owner.address)
+    const FLEXABLENFT_ADMIN_ROLE = await flexableNFT.FLEXABLENFT_ADMIN_ROLE()
+    expect(await flexableNFT.getRoleMember(FLEXABLENFT_ADMIN_ROLE, 0)).to.be.equal(owner.address)
   })
 
   it("Should grant role", async () => {
-    const WEAREFLEX_OPERATOR_ROLE = await weareFlex.WEARFLEX_OPERATOR_ROLE()
+    const FLEXABLENFT_OPERATOR_ROLE = await flexableNFT.WEARFLEX_OPERATOR_ROLE()
     expect(
-      await weareFlex.grantRole(WEAREFLEX_OPERATOR_ROLE, operator.address)
+      await flexableNFT.grantRole(FLEXABLENFT_OPERATOR_ROLE, operator.address)
     )
-      .to.emit(weareFlex, "RoleGranted")
-      .withArgs(WEAREFLEX_OPERATOR_ROLE, operator.address, owner.address)
-    let hasRole = await weareFlex.hasRole(WEAREFLEX_OPERATOR_ROLE, operator.address)
+      .to.emit(flexableNFT, "RoleGranted")
+      .withArgs(FLEXABLENFT_OPERATOR_ROLE, operator.address, owner.address)
+    let hasRole = await flexableNFT.hasRole(FLEXABLENFT_OPERATOR_ROLE, operator.address)
     expect(hasRole).to.be.true
 
-    const WEAREFLEX_CREATOR_ROLE = await weareFlex.WEARFLEX_CREATOR_ROLE()
+    const FLEXABLENFT_CREATOR_ROLE = await flexableNFT.WEARFLEX_CREATOR_ROLE()
 
     expect(
-      await weareFlex.connect(operator).grantRole(WEAREFLEX_CREATOR_ROLE, creator.address)
+      await flexableNFT.connect(operator).grantRole(FLEXABLENFT_CREATOR_ROLE, creator.address)
     )
-      .to.emit(weareFlex, "RoleGranted")
-      .withArgs(WEAREFLEX_CREATOR_ROLE, creator.address, operator.address)
+      .to.emit(flexableNFT, "RoleGranted")
+      .withArgs(FLEXABLENFT_CREATOR_ROLE, creator.address, operator.address)
 
-    hasRole = await weareFlex.hasRole(WEAREFLEX_CREATOR_ROLE, creator.address)
+    hasRole = await flexableNFT.hasRole(FLEXABLENFT_CREATOR_ROLE, creator.address)
     expect(hasRole).to.be.true
 
   })
   const metaDataHash = "ipfs://QmbXvKra8Re7sxCMAEpquWJEq5qmSqis5VPCvo9uTA7AcF"
 
-  it("Should delegate artifact creation", async () => {
+  it("Should delegate ticket creation", async () => {
     expect(
-      await weareFlex.connect(operator).delegateArtifactCreation(creator2.address, metaDataHash)
+      await flexableNFT.connect(operator).delegateTicketCreation(creator2.address, metaDataHash)
     )
-      .to.emit(weareFlex, "ArtifactCreated")
+      .to.emit(flexableNFT, "TicketCreated")
       .withArgs(1, creator2.address, metaDataHash)
 
-    const tokenURI = await weareFlex.tokenURI(1)
+    const tokenURI = await flexableNFT.tokenURI(1)
     expect(tokenURI).to.equal(metaDataHash)
   })
 
-  it("Should update status if owner of token", async () => {
+  it("Should update status if operator", async () => {
     const status = "test status"
     expect(
-      await weareFlex.connect(creator2).
+      await flexableNFT.connect(operator).
         setStatus(1, status)
-    ).to.emit(weareFlex, "StatusUpdated")
+    ).to.emit(flexableNFT, "StatusUpdated")
       .withArgs(1, status)
   })
 
-  it("Should fail to set status if not owner of token", async () => {
+  it("Should fail to set status if not operator", async () => {
+    const WEARFLEX_OPERATOR_ROLE = await flexableNFT.WEARFLEX_OPERATOR_ROLE()
     const status = "test status"
     await expect(
-      weareFlex.connect(creator).
+      flexableNFT.connect(creator).
         setStatus(1, status)
-    ).to.be.revertedWith("Weareflex: caller is not owner nor approved to set status of NFT")
+    ).to.be.revertedWith(`AccessControl: account ${creator.address.toLowerCase()} is missing role ${WEARFLEX_OPERATOR_ROLE}`)
   })
 
 })
