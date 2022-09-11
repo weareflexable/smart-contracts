@@ -28,7 +28,7 @@ describe("NFT contract", () => {
   })
 
   it("Should grant role", async () => {
-    const FLEXABLENFT_OPERATOR_ROLE = await flexableNFT.WEARFLEX_OPERATOR_ROLE()
+    const FLEXABLENFT_OPERATOR_ROLE = await flexableNFT.FLEXABLENFT_OPERATOR_ROLE()
     expect(
       await flexableNFT.grantRole(FLEXABLENFT_OPERATOR_ROLE, operator.address)
     )
@@ -37,7 +37,7 @@ describe("NFT contract", () => {
     let hasRole = await flexableNFT.hasRole(FLEXABLENFT_OPERATOR_ROLE, operator.address)
     expect(hasRole).to.be.true
 
-    const FLEXABLENFT_CREATOR_ROLE = await flexableNFT.WEARFLEX_CREATOR_ROLE()
+    const FLEXABLENFT_CREATOR_ROLE = await flexableNFT.FLEXABLENFT_CREATOR_ROLE()
 
     expect(
       await flexableNFT.connect(operator).grantRole(FLEXABLENFT_CREATOR_ROLE, creator.address)
@@ -72,12 +72,12 @@ describe("NFT contract", () => {
   })
 
   it("Should fail to set status if not operator", async () => {
-    const WEARFLEX_OPERATOR_ROLE = await flexableNFT.WEARFLEX_OPERATOR_ROLE()
+    const FLEXABLENFT_OPERATOR_ROLE = await flexableNFT.FLEXABLENFT_OPERATOR_ROLE()
     const status = "test status"
     await expect(
       flexableNFT.connect(creator).
         setStatus(1, status)
-    ).to.be.revertedWith(`AccessControl: account ${creator.address.toLowerCase()} is missing role ${WEARFLEX_OPERATOR_ROLE}`)
+    ).to.be.revertedWith(`AccessControl: account ${creator.address.toLowerCase()} is missing role ${FLEXABLENFT_OPERATOR_ROLE}`)
   })
 
 })

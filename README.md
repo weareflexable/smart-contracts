@@ -1,10 +1,10 @@
-# Weareflex Smart Contract
+# FLEXABLE NFT Smart Contract
 
 Smart contract deployed to matic
 
-[Explorer](https://mumbai.polygonscan.com/address/0x3e35Db6dB009bf9786657C430A3a292568db75E3#code)
+[Explorer](https://mumbai.polygonscan.com/address/0x7F2aD53225cB2e8Fb429Ca6d64E5331A0636c216#code)
 ```
-0x3e35Db6dB009bf9786657C430A3a292568db75E3
+0x7F2aD53225cB2e8Fb429Ca6d64E5331A0636c216
 ```
 
 # Testing and development
