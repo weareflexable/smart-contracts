@@ -2,9 +2,9 @@
 
 Smart contract deployed to matic
 
-[Explorer](https://mumbai.polygonscan.com/address/0x7F2aD53225cB2e8Fb429Ca6d64E5331A0636c216#code)
+[Explorer](https://mumbai.polygonscan.com/address/0x8d036141f10FE34D739E8C289951F7bE77AB5707#code)
 ```
-0x7F2aD53225cB2e8Fb429Ca6d64E5331A0636c216
+0x8d036141f10FE34D739E8C289951F7bE77AB5707
 ```
 
 # Testing and development
