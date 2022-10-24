@@ -1,0 +1,15 @@
+type Token @entity {
+  id: ID!
+  createdAtTimestamp: BigInt!
+  metaDataUri: String!
+  creator: User!
+  owner: User!
+  status: String!
+}
+
+type User @entity {
+  id: ID!
+  tokens: [Token!]! @derivedFrom(field: "owner")
+  created: [Token!]! @derivedFrom(field: "creator")
+  roles: [String!]!
+}

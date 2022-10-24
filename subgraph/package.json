@@ -1,0 +1,23 @@
+{
+  "name": "flexable",
+  "license": "MIT",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy": "graph auth --product hosted-service $GRAPH_TOKEN && graph deploy --node https://api.thegraph.com/deploy/ thisisommore/flexable",
+    "create-local": "graph create --node http://localhost:8020/ thisisommore/flexable",
+    "remove-local": "graph remove --node http://localhost:8020/ thisisommore/flexable",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 thisisommore/flexable",
+    "test": "graph test",
+    "remove:hosted": "graph remove --node $GRAPH_NODE_URL flexable",
+    "create:hosted": "graph create --node $GRAPH_NODE_URL flexable",
+    "deploy:hosted": "graph deploy --node $GRAPH_NODE_URL --ipfs $GRAPH_IPFS_URL -l $GRAPH_DEPLOY_VERSION flexable"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.35.0",
+    "@graphprotocol/graph-ts": "0.28.1"
+  },
+  "devDependencies": {
+    "matchstick-as": "0.5.0"
+  }
+}

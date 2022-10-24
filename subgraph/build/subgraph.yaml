@@ -1,0 +1,35 @@
+specVersion: 0.0.4
+schema:
+  file: schema.graphql
+dataSources:
+  - kind: ethereum
+    name: FlexableNFT
+    network: mumbai
+    source:
+      address: "0x8d036141f10FE34D739E8C289951F7bE77AB5707"
+      abi: FlexableNFT
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - RoleGranted
+        - RoleRevoked
+        - StatusUpdated
+        - TicketCreated
+        - Transfer
+      abis:
+        - name: FlexableNFT
+          file: FlexableNFT/abis/FlexableNFT.json
+      eventHandlers:
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleRevoked
+        - event: StatusUpdated(uint256,string)
+          handler: handleStatusUpdated
+        - event: TicketCreated(uint256,indexed address,string)
+          handler: handleTicketCreated
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+      file: FlexableNFT/FlexableNFT.wasm
