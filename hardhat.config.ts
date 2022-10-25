@@ -22,8 +22,7 @@ const config: HardhatUserConfig = {
         mnemonic: MNEMONIC,
       },
     },
-  }
-  ,
+  },
   etherscan: {
     apiKey: POLYGONSCAN_API_KEY || ETHERSCAN_API_KEY,
   },

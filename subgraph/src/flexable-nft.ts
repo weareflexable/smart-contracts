@@ -22,7 +22,7 @@ export function handleTransfer(event: Transfer): void {
   }
 }
 
-export function handleArtifactCreated(event: TicketCreated): void {
+export function handleTicketCreated(event: TicketCreated): void {
   let token = Token.load(event.params.tokenID.toString());
   if (!token) {
     token = new Token(event.params.tokenID.toString())
@@ -35,6 +35,7 @@ export function handleArtifactCreated(event: TicketCreated): void {
     token.save();
     if (!user) {
       user = new User(event.params.creator.toHexString());
+      user.roles = []
       user.save();
     }
   }
@@ -45,6 +46,7 @@ export function handleRoleGranted(event: RoleGranted): void {
   let user = User.load(event.params.account.toHexString());
   if (!user) {
     user = new User(event.params.account.toHexString());
+    user.roles = []
   }
   let userHasRole = user.roles.includes(event.params.role.toHexString())
   if (!userHasRole) {
@@ -55,10 +57,19 @@ export function handleRoleGranted(event: RoleGranted): void {
   user.save();
 }
 
+export function handleStatusUpdated(event: StatusUpdated): void {
+  let token = Token.load(event.params.tokenID.toString());
+  if (token) {
+    token.status = event.params.status;
+    token.save();
+  }
+}
+
 export function handleRoleRevoked(event: RoleRevoked): void {
   let user = User.load(event.params.account.toHexString());
   if (!user) {
     user = new User(event.params.account.toHexString());
+    user.roles = []
   }
 
   let idx = user.roles.indexOf(event.params.role.toHexString())
