@@ -7,13 +7,12 @@ Smart contract deployed to matic
 ```
 0x8d036141f10FE34D739E8C289951F7bE77AB5707
 ```
+### Mainnet
 
 [Explorer](https://polygonscan.com/address/0x0632534712C3aBEf9922Ce3BC587A2f27E25901f#code)
 ```
 0x0632534712C3aBEf9922Ce3BC587A2f27E25901f
 ```
-### Mainnet
-0x0632534712C3aBEf9922Ce3BC587A2f27E25901f
 
 # Testing and development
 
