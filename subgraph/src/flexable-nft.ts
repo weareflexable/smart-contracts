@@ -14,11 +14,12 @@ export function handleTransfer(event: Transfer): void {
     token.save();
 
     let user = User.load(event.params.to.toHexString());
-    token.save();
     if (!user) {
       user = new User(event.params.to.toHexString());
+      user.roles=[]
       user.save();
     }
+    token.save();
   }
 }
 
