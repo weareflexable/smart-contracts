@@ -86,6 +86,15 @@ export class Token extends Entity {
   set status(value: string) {
     this.set("status", Value.fromString(value));
   }
+
+  get txHash(): string {
+    let value = this.get("txHash");
+    return value!.toString();
+  }
+
+  set txHash(value: string) {
+    this.set("txHash", Value.fromString(value));
+  }
 }
 
 export class User extends Entity {

@@ -30,6 +30,7 @@ export function handleTicketCreated(event: TicketCreated): void {
     token.createdAtTimestamp = event.block.timestamp
     token.owner = event.params.creator.toHexString();
     token.metaDataUri = event.params.metaDataUri
+    token.txHash = event.transaction.hash.toHexString()
     token.status = ""
     let user = User.load(event.params.creator.toHexString());
     token.save();
