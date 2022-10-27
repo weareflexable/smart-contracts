@@ -5,6 +5,7 @@ type Token @entity {
   creator: User!
   owner: User!
   status: String!
+  txHash: String!
 }
 
 type User @entity {
