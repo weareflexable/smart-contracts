@@ -4,11 +4,11 @@ schema:
 dataSources:
   - kind: ethereum
     name: FlexableNFT
-    network: mumbai
+    network: matic
     source:
-      address: "0x8d036141f10FE34D739E8C289951F7bE77AB5707"
+      address: "0x0632534712C3aBEf9922Ce3BC587A2f27E25901f"
       abi: FlexableNFT
-      startBlock: 28772936
+      startBlock: 34788223
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
