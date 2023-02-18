@@ -26,6 +26,7 @@
   },
   "scripts": {
     "test": "hardhat test",
+    "coverage": "hardhat coverage",
     "deploy": "hardhat run scripts/deploy.ts --network $NETWORK",
     "verify": "npx hardhat verify --network $NETWORK $CONTRACT_ADDRESS FlexableNFT FLEX"
   }

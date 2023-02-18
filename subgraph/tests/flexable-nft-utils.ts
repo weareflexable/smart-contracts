@@ -7,8 +7,10 @@ import {
   RoleAdminChanged,
   RoleGranted,
   RoleRevoked,
-  StatusUpdated,
+  RoyaltyUpdated,
+  TicketBurnt,
   TicketCreated,
+  TicketRedeemed,
   Transfer,
   Unpaused
 } from "../generated/FlexableNFT/FlexableNFT"
@@ -144,31 +146,55 @@ export function createRoleRevokedEvent(
   return roleRevokedEvent
 }
 
-export function createStatusUpdatedEvent(
-  tokenID: BigInt,
-  status: string
-): StatusUpdated {
-  let statusUpdatedEvent = changetype<StatusUpdated>(newMockEvent())
+export function createRoyaltyUpdatedEvent(
+  reciever: Address,
+  percentageBasisPoint: BigInt
+): RoyaltyUpdated {
+  let royaltyUpdatedEvent = changetype<RoyaltyUpdated>(newMockEvent())
 
-  statusUpdatedEvent.parameters = new Array()
+  royaltyUpdatedEvent.parameters = new Array()
 
-  statusUpdatedEvent.parameters.push(
+  royaltyUpdatedEvent.parameters.push(
+    new ethereum.EventParam("reciever", ethereum.Value.fromAddress(reciever))
+  )
+  royaltyUpdatedEvent.parameters.push(
     new ethereum.EventParam(
-      "tokenID",
-      ethereum.Value.fromUnsignedBigInt(tokenID)
+      "percentageBasisPoint",
+      ethereum.Value.fromUnsignedBigInt(percentageBasisPoint)
     )
   )
-  statusUpdatedEvent.parameters.push(
-    new ethereum.EventParam("status", ethereum.Value.fromString(status))
+
+  return royaltyUpdatedEvent
+}
+
+export function createTicketBurntEvent(
+  tokenId: BigInt,
+  ownerOrApproved: Address
+): TicketBurnt {
+  let ticketBurntEvent = changetype<TicketBurnt>(newMockEvent())
+
+  ticketBurntEvent.parameters = new Array()
+
+  ticketBurntEvent.parameters.push(
+    new ethereum.EventParam(
+      "tokenId",
+      ethereum.Value.fromUnsignedBigInt(tokenId)
+    )
+  )
+  ticketBurntEvent.parameters.push(
+    new ethereum.EventParam(
+      "ownerOrApproved",
+      ethereum.Value.fromAddress(ownerOrApproved)
+    )
   )
 
-  return statusUpdatedEvent
+  return ticketBurntEvent
 }
 
 export function createTicketCreatedEvent(
   tokenID: BigInt,
   creator: Address,
-  metaDataUri: string
+  metaDataURI: string
 ): TicketCreated {
   let ticketCreatedEvent = changetype<TicketCreated>(newMockEvent())
 
@@ -185,12 +211,40 @@ export function createTicketCreatedEvent(
   )
   ticketCreatedEvent.parameters.push(
     new ethereum.EventParam(
-      "metaDataUri",
-      ethereum.Value.fromString(metaDataUri)
+      "metaDataURI",
+      ethereum.Value.fromString(metaDataURI)
     )
   )
 
   return ticketCreatedEvent
+}
+
+export function createTicketRedeemedEvent(
+  tokenID: BigInt,
+  count: i32,
+  info: string
+): TicketRedeemed {
+  let ticketRedeemedEvent = changetype<TicketRedeemed>(newMockEvent())
+
+  ticketRedeemedEvent.parameters = new Array()
+
+  ticketRedeemedEvent.parameters.push(
+    new ethereum.EventParam(
+      "tokenID",
+      ethereum.Value.fromUnsignedBigInt(tokenID)
+    )
+  )
+  ticketRedeemedEvent.parameters.push(
+    new ethereum.EventParam(
+      "count",
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(count))
+    )
+  )
+  ticketRedeemedEvent.parameters.push(
+    new ethereum.EventParam("info", ethereum.Value.fromString(info))
+  )
+
+  return ticketRedeemedEvent
 }
 
 export function createTransferEvent(

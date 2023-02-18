@@ -149,19 +149,38 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
+        "internalType": "address",
+        "name": "reciever",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint96",
+        "name": "percentageBasisPoint",
+        "type": "uint96"
+      }
+    ],
+    "name": "RoyaltyUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "uint256",
-        "name": "tokenID",
+        "name": "tokenId",
         "type": "uint256"
       },
       {
-        "indexed": false,
-        "internalType": "string",
-        "name": "status",
-        "type": "string"
+        "indexed": true,
+        "internalType": "address",
+        "name": "ownerOrApproved",
+        "type": "address"
       }
     ],
-    "name": "StatusUpdated",
+    "name": "TicketBurnt",
     "type": "event"
   },
   {
@@ -182,11 +201,36 @@
       {
         "indexed": false,
         "internalType": "string",
-        "name": "metaDataUri",
+        "name": "metaDataURI",
         "type": "string"
       }
     ],
     "name": "TicketCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenID",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint16",
+        "name": "count",
+        "type": "uint16"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "info",
+        "type": "string"
+      }
+    ],
+    "name": "TicketRedeemed",
     "type": "event"
   },
   {
@@ -257,9 +301,10 @@
   },
   {
     "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "name": "FlexableNFTNFTs",
+    "name": "TicketStatus",
     "outputs": [
-      { "internalType": "string", "name": "status", "type": "string" }
+      { "internalType": "uint16", "name": "redeemCount", "type": "uint16" },
+      { "internalType": "string", "name": "redeemInfo", "type": "string" }
     ],
     "stateMutability": "view",
     "type": "function"
@@ -287,14 +332,14 @@
     "inputs": [
       { "internalType": "uint256", "name": "tokenId", "type": "uint256" }
     ],
-    "name": "burn",
+    "name": "burnTicket",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "string", "name": "metadataHash", "type": "string" }
+      { "internalType": "string", "name": "metadataURI", "type": "string" }
     ],
     "name": "createTicket",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
@@ -303,10 +348,44 @@
   },
   {
     "inputs": [
+      { "internalType": "string", "name": "metadataURI", "type": "string" },
+      {
+        "internalType": "uint96",
+        "name": "royaltyPercentBasisPoint",
+        "type": "uint96"
+      }
+    ],
+    "name": "createTicketWithCustomRoyalty",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       { "internalType": "address", "name": "creator", "type": "address" },
-      { "internalType": "string", "name": "metadataHash", "type": "string" }
+      { "internalType": "string", "name": "metadataURI", "type": "string" }
     ],
     "name": "delegateTicketCreation",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "creator", "type": "address" },
+      { "internalType": "string", "name": "metadataURI", "type": "string" },
+      {
+        "internalType": "address",
+        "name": "royaltyaddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint96",
+        "name": "royaltyPercentBasisPoint",
+        "type": "uint96"
+      }
+    ],
+    "name": "delegateTicketCreationWithCustomRoyalty",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -410,6 +489,16 @@
   },
   {
     "inputs": [
+      { "internalType": "uint256", "name": "tokenId", "type": "uint256" },
+      { "internalType": "string", "name": "info", "type": "string" }
+    ],
+    "name": "redeemTicket",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       { "internalType": "bytes32", "name": "role", "type": "bytes32" },
       { "internalType": "address", "name": "account", "type": "address" }
     ],
@@ -426,6 +515,19 @@
     "name": "revokeRole",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "_tokenId", "type": "uint256" },
+      { "internalType": "uint256", "name": "_salePrice", "type": "uint256" }
+    ],
+    "name": "royaltyInfo",
+    "outputs": [
+      { "internalType": "address", "name": "", "type": "address" },
+      { "internalType": "uint256", "name": "", "type": "uint256" }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -457,16 +559,6 @@
       { "internalType": "bool", "name": "approved", "type": "bool" }
     ],
     "name": "setApprovalForAll",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "tokenId", "type": "uint256" },
-      { "internalType": "string", "name": "status", "type": "string" }
-    ],
-    "name": "setStatus",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -536,6 +628,24 @@
   {
     "inputs": [],
     "name": "unpause",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "royaltyReciever",
+        "type": "address"
+      },
+      {
+        "internalType": "uint96",
+        "name": "percentageBasisPoint",
+        "type": "uint96"
+      }
+    ],
+    "name": "updateDefaultRoyalty",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

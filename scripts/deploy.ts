@@ -2,12 +2,12 @@ import { ethers } from "hardhat";
 
 async function main() {
 
-  const metadata = {
+  const nftData = {
     name: "FlexableNFT",
     symbol: "FLEX",
   }
   const FlexableNFT = await ethers.getContractFactory("FlexableNFT");
-  const flexableNFT = await FlexableNFT.deploy(metadata.name, metadata.symbol);
+  const flexableNFT = await FlexableNFT.deploy(nftData.name, nftData.symbol);
 
   await flexableNFT.deployed();
 

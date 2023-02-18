@@ -158,25 +158,47 @@ export class RoleRevoked__Params {
   }
 }
 
-export class StatusUpdated extends ethereum.Event {
-  get params(): StatusUpdated__Params {
-    return new StatusUpdated__Params(this);
+export class RoyaltyUpdated extends ethereum.Event {
+  get params(): RoyaltyUpdated__Params {
+    return new RoyaltyUpdated__Params(this);
   }
 }
 
-export class StatusUpdated__Params {
-  _event: StatusUpdated;
+export class RoyaltyUpdated__Params {
+  _event: RoyaltyUpdated;
 
-  constructor(event: StatusUpdated) {
+  constructor(event: RoyaltyUpdated) {
     this._event = event;
   }
 
-  get tokenID(): BigInt {
+  get reciever(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get percentageBasisPoint(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+}
+
+export class TicketBurnt extends ethereum.Event {
+  get params(): TicketBurnt__Params {
+    return new TicketBurnt__Params(this);
+  }
+}
+
+export class TicketBurnt__Params {
+  _event: TicketBurnt;
+
+  constructor(event: TicketBurnt) {
+    this._event = event;
+  }
+
+  get tokenId(): BigInt {
     return this._event.parameters[0].value.toBigInt();
   }
 
-  get status(): string {
-    return this._event.parameters[1].value.toString();
+  get ownerOrApproved(): Address {
+    return this._event.parameters[1].value.toAddress();
   }
 }
 
@@ -201,7 +223,33 @@ export class TicketCreated__Params {
     return this._event.parameters[1].value.toAddress();
   }
 
-  get metaDataUri(): string {
+  get metaDataURI(): string {
+    return this._event.parameters[2].value.toString();
+  }
+}
+
+export class TicketRedeemed extends ethereum.Event {
+  get params(): TicketRedeemed__Params {
+    return new TicketRedeemed__Params(this);
+  }
+}
+
+export class TicketRedeemed__Params {
+  _event: TicketRedeemed;
+
+  constructor(event: TicketRedeemed) {
+    this._event = event;
+  }
+
+  get tokenID(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+
+  get count(): i32 {
+    return this._event.parameters[1].value.toI32();
+  }
+
+  get info(): string {
     return this._event.parameters[2].value.toString();
   }
 }
@@ -247,6 +295,59 @@ export class Unpaused__Params {
 
   get account(): Address {
     return this._event.parameters[0].value.toAddress();
+  }
+}
+
+export class FlexableNFT__TicketStatusResult {
+  value0: i32;
+  value1: string;
+
+  constructor(value0: i32, value1: string) {
+    this.value0 = value0;
+    this.value1 = value1;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set(
+      "value0",
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(this.value0))
+    );
+    map.set("value1", ethereum.Value.fromString(this.value1));
+    return map;
+  }
+
+  getRedeemCount(): i32 {
+    return this.value0;
+  }
+
+  getRedeemInfo(): string {
+    return this.value1;
+  }
+}
+
+export class FlexableNFT__royaltyInfoResult {
+  value0: Address;
+  value1: BigInt;
+
+  constructor(value0: Address, value1: BigInt) {
+    this.value0 = value0;
+    this.value1 = value1;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromAddress(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    return map;
+  }
+
+  getValue0(): Address {
+    return this.value0;
+  }
+
+  getValue1(): BigInt {
+    return this.value1;
   }
 }
 
@@ -347,27 +448,34 @@ export class FlexableNFT extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBytes());
   }
 
-  FlexableNFTNFTs(param0: BigInt): string {
+  TicketStatus(param0: BigInt): FlexableNFT__TicketStatusResult {
     let result = super.call(
-      "FlexableNFTNFTs",
-      "FlexableNFTNFTs(uint256):(string)",
+      "TicketStatus",
+      "TicketStatus(uint256):(uint16,string)",
       [ethereum.Value.fromUnsignedBigInt(param0)]
     );
 
-    return result[0].toString();
+    return new FlexableNFT__TicketStatusResult(
+      result[0].toI32(),
+      result[1].toString()
+    );
   }
 
-  try_FlexableNFTNFTs(param0: BigInt): ethereum.CallResult<string> {
+  try_TicketStatus(
+    param0: BigInt
+  ): ethereum.CallResult<FlexableNFT__TicketStatusResult> {
     let result = super.tryCall(
-      "FlexableNFTNFTs",
-      "FlexableNFTNFTs(uint256):(string)",
+      "TicketStatus",
+      "TicketStatus(uint256):(uint16,string)",
       [ethereum.Value.fromUnsignedBigInt(param0)]
     );
     if (result.reverted) {
       return new ethereum.CallResult();
     }
     let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toString());
+    return ethereum.CallResult.fromValue(
+      new FlexableNFT__TicketStatusResult(value[0].toI32(), value[1].toString())
+    );
   }
 
   balanceOf(owner: Address): BigInt {
@@ -389,19 +497,19 @@ export class FlexableNFT extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  createTicket(metadataHash: string): BigInt {
+  createTicket(metadataURI: string): BigInt {
     let result = super.call("createTicket", "createTicket(string):(uint256)", [
-      ethereum.Value.fromString(metadataHash)
+      ethereum.Value.fromString(metadataURI)
     ]);
 
     return result[0].toBigInt();
   }
 
-  try_createTicket(metadataHash: string): ethereum.CallResult<BigInt> {
+  try_createTicket(metadataURI: string): ethereum.CallResult<BigInt> {
     let result = super.tryCall(
       "createTicket",
       "createTicket(string):(uint256)",
-      [ethereum.Value.fromString(metadataHash)]
+      [ethereum.Value.fromString(metadataURI)]
     );
     if (result.reverted) {
       return new ethereum.CallResult();
@@ -410,13 +518,48 @@ export class FlexableNFT extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  delegateTicketCreation(creator: Address, metadataHash: string): BigInt {
+  createTicketWithCustomRoyalty(
+    metadataURI: string,
+    royaltyPercentBasisPoint: BigInt
+  ): BigInt {
+    let result = super.call(
+      "createTicketWithCustomRoyalty",
+      "createTicketWithCustomRoyalty(string,uint96):(uint256)",
+      [
+        ethereum.Value.fromString(metadataURI),
+        ethereum.Value.fromUnsignedBigInt(royaltyPercentBasisPoint)
+      ]
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_createTicketWithCustomRoyalty(
+    metadataURI: string,
+    royaltyPercentBasisPoint: BigInt
+  ): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "createTicketWithCustomRoyalty",
+      "createTicketWithCustomRoyalty(string,uint96):(uint256)",
+      [
+        ethereum.Value.fromString(metadataURI),
+        ethereum.Value.fromUnsignedBigInt(royaltyPercentBasisPoint)
+      ]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  delegateTicketCreation(creator: Address, metadataURI: string): BigInt {
     let result = super.call(
       "delegateTicketCreation",
       "delegateTicketCreation(address,string):(uint256)",
       [
         ethereum.Value.fromAddress(creator),
-        ethereum.Value.fromString(metadataHash)
+        ethereum.Value.fromString(metadataURI)
       ]
     );
 
@@ -425,14 +568,57 @@ export class FlexableNFT extends ethereum.SmartContract {
 
   try_delegateTicketCreation(
     creator: Address,
-    metadataHash: string
+    metadataURI: string
   ): ethereum.CallResult<BigInt> {
     let result = super.tryCall(
       "delegateTicketCreation",
       "delegateTicketCreation(address,string):(uint256)",
       [
         ethereum.Value.fromAddress(creator),
-        ethereum.Value.fromString(metadataHash)
+        ethereum.Value.fromString(metadataURI)
+      ]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  delegateTicketCreationWithCustomRoyalty(
+    creator: Address,
+    metadataURI: string,
+    royaltyaddress: Address,
+    royaltyPercentBasisPoint: BigInt
+  ): BigInt {
+    let result = super.call(
+      "delegateTicketCreationWithCustomRoyalty",
+      "delegateTicketCreationWithCustomRoyalty(address,string,address,uint96):(uint256)",
+      [
+        ethereum.Value.fromAddress(creator),
+        ethereum.Value.fromString(metadataURI),
+        ethereum.Value.fromAddress(royaltyaddress),
+        ethereum.Value.fromUnsignedBigInt(royaltyPercentBasisPoint)
+      ]
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_delegateTicketCreationWithCustomRoyalty(
+    creator: Address,
+    metadataURI: string,
+    royaltyaddress: Address,
+    royaltyPercentBasisPoint: BigInt
+  ): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "delegateTicketCreationWithCustomRoyalty",
+      "delegateTicketCreationWithCustomRoyalty(address,string,address,uint96):(uint256)",
+      [
+        ethereum.Value.fromAddress(creator),
+        ethereum.Value.fromString(metadataURI),
+        ethereum.Value.fromAddress(royaltyaddress),
+        ethereum.Value.fromUnsignedBigInt(royaltyPercentBasisPoint)
       ]
     );
     if (result.reverted) {
@@ -632,6 +818,49 @@ export class FlexableNFT extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
 
+  royaltyInfo(
+    _tokenId: BigInt,
+    _salePrice: BigInt
+  ): FlexableNFT__royaltyInfoResult {
+    let result = super.call(
+      "royaltyInfo",
+      "royaltyInfo(uint256,uint256):(address,uint256)",
+      [
+        ethereum.Value.fromUnsignedBigInt(_tokenId),
+        ethereum.Value.fromUnsignedBigInt(_salePrice)
+      ]
+    );
+
+    return new FlexableNFT__royaltyInfoResult(
+      result[0].toAddress(),
+      result[1].toBigInt()
+    );
+  }
+
+  try_royaltyInfo(
+    _tokenId: BigInt,
+    _salePrice: BigInt
+  ): ethereum.CallResult<FlexableNFT__royaltyInfoResult> {
+    let result = super.tryCall(
+      "royaltyInfo",
+      "royaltyInfo(uint256,uint256):(address,uint256)",
+      [
+        ethereum.Value.fromUnsignedBigInt(_tokenId),
+        ethereum.Value.fromUnsignedBigInt(_salePrice)
+      ]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new FlexableNFT__royaltyInfoResult(
+        value[0].toAddress(),
+        value[1].toBigInt()
+      )
+    );
+  }
+
   supportsInterface(interfaceId: Bytes): boolean {
     let result = super.call(
       "supportsInterface",
@@ -826,20 +1055,20 @@ export class ApproveCall__Outputs {
   }
 }
 
-export class BurnCall extends ethereum.Call {
-  get inputs(): BurnCall__Inputs {
-    return new BurnCall__Inputs(this);
+export class BurnTicketCall extends ethereum.Call {
+  get inputs(): BurnTicketCall__Inputs {
+    return new BurnTicketCall__Inputs(this);
   }
 
-  get outputs(): BurnCall__Outputs {
-    return new BurnCall__Outputs(this);
+  get outputs(): BurnTicketCall__Outputs {
+    return new BurnTicketCall__Outputs(this);
   }
 }
 
-export class BurnCall__Inputs {
-  _call: BurnCall;
+export class BurnTicketCall__Inputs {
+  _call: BurnTicketCall;
 
-  constructor(call: BurnCall) {
+  constructor(call: BurnTicketCall) {
     this._call = call;
   }
 
@@ -848,10 +1077,10 @@ export class BurnCall__Inputs {
   }
 }
 
-export class BurnCall__Outputs {
-  _call: BurnCall;
+export class BurnTicketCall__Outputs {
+  _call: BurnTicketCall;
 
-  constructor(call: BurnCall) {
+  constructor(call: BurnTicketCall) {
     this._call = call;
   }
 }
@@ -873,7 +1102,7 @@ export class CreateTicketCall__Inputs {
     this._call = call;
   }
 
-  get metadataHash(): string {
+  get metadataURI(): string {
     return this._call.inputValues[0].value.toString();
   }
 }
@@ -882,6 +1111,44 @@ export class CreateTicketCall__Outputs {
   _call: CreateTicketCall;
 
   constructor(call: CreateTicketCall) {
+    this._call = call;
+  }
+
+  get value0(): BigInt {
+    return this._call.outputValues[0].value.toBigInt();
+  }
+}
+
+export class CreateTicketWithCustomRoyaltyCall extends ethereum.Call {
+  get inputs(): CreateTicketWithCustomRoyaltyCall__Inputs {
+    return new CreateTicketWithCustomRoyaltyCall__Inputs(this);
+  }
+
+  get outputs(): CreateTicketWithCustomRoyaltyCall__Outputs {
+    return new CreateTicketWithCustomRoyaltyCall__Outputs(this);
+  }
+}
+
+export class CreateTicketWithCustomRoyaltyCall__Inputs {
+  _call: CreateTicketWithCustomRoyaltyCall;
+
+  constructor(call: CreateTicketWithCustomRoyaltyCall) {
+    this._call = call;
+  }
+
+  get metadataURI(): string {
+    return this._call.inputValues[0].value.toString();
+  }
+
+  get royaltyPercentBasisPoint(): BigInt {
+    return this._call.inputValues[1].value.toBigInt();
+  }
+}
+
+export class CreateTicketWithCustomRoyaltyCall__Outputs {
+  _call: CreateTicketWithCustomRoyaltyCall;
+
+  constructor(call: CreateTicketWithCustomRoyaltyCall) {
     this._call = call;
   }
 
@@ -911,7 +1178,7 @@ export class DelegateTicketCreationCall__Inputs {
     return this._call.inputValues[0].value.toAddress();
   }
 
-  get metadataHash(): string {
+  get metadataURI(): string {
     return this._call.inputValues[1].value.toString();
   }
 }
@@ -920,6 +1187,52 @@ export class DelegateTicketCreationCall__Outputs {
   _call: DelegateTicketCreationCall;
 
   constructor(call: DelegateTicketCreationCall) {
+    this._call = call;
+  }
+
+  get value0(): BigInt {
+    return this._call.outputValues[0].value.toBigInt();
+  }
+}
+
+export class DelegateTicketCreationWithCustomRoyaltyCall extends ethereum.Call {
+  get inputs(): DelegateTicketCreationWithCustomRoyaltyCall__Inputs {
+    return new DelegateTicketCreationWithCustomRoyaltyCall__Inputs(this);
+  }
+
+  get outputs(): DelegateTicketCreationWithCustomRoyaltyCall__Outputs {
+    return new DelegateTicketCreationWithCustomRoyaltyCall__Outputs(this);
+  }
+}
+
+export class DelegateTicketCreationWithCustomRoyaltyCall__Inputs {
+  _call: DelegateTicketCreationWithCustomRoyaltyCall;
+
+  constructor(call: DelegateTicketCreationWithCustomRoyaltyCall) {
+    this._call = call;
+  }
+
+  get creator(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
+  get metadataURI(): string {
+    return this._call.inputValues[1].value.toString();
+  }
+
+  get royaltyaddress(): Address {
+    return this._call.inputValues[2].value.toAddress();
+  }
+
+  get royaltyPercentBasisPoint(): BigInt {
+    return this._call.inputValues[3].value.toBigInt();
+  }
+}
+
+export class DelegateTicketCreationWithCustomRoyaltyCall__Outputs {
+  _call: DelegateTicketCreationWithCustomRoyaltyCall;
+
+  constructor(call: DelegateTicketCreationWithCustomRoyaltyCall) {
     this._call = call;
   }
 
@@ -984,6 +1297,40 @@ export class PauseCall__Outputs {
   _call: PauseCall;
 
   constructor(call: PauseCall) {
+    this._call = call;
+  }
+}
+
+export class RedeemTicketCall extends ethereum.Call {
+  get inputs(): RedeemTicketCall__Inputs {
+    return new RedeemTicketCall__Inputs(this);
+  }
+
+  get outputs(): RedeemTicketCall__Outputs {
+    return new RedeemTicketCall__Outputs(this);
+  }
+}
+
+export class RedeemTicketCall__Inputs {
+  _call: RedeemTicketCall;
+
+  constructor(call: RedeemTicketCall) {
+    this._call = call;
+  }
+
+  get tokenId(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+
+  get info(): string {
+    return this._call.inputValues[1].value.toString();
+  }
+}
+
+export class RedeemTicketCall__Outputs {
+  _call: RedeemTicketCall;
+
+  constructor(call: RedeemTicketCall) {
     this._call = call;
   }
 }
@@ -1170,40 +1517,6 @@ export class SetApprovalForAllCall__Outputs {
   }
 }
 
-export class SetStatusCall extends ethereum.Call {
-  get inputs(): SetStatusCall__Inputs {
-    return new SetStatusCall__Inputs(this);
-  }
-
-  get outputs(): SetStatusCall__Outputs {
-    return new SetStatusCall__Outputs(this);
-  }
-}
-
-export class SetStatusCall__Inputs {
-  _call: SetStatusCall;
-
-  constructor(call: SetStatusCall) {
-    this._call = call;
-  }
-
-  get tokenId(): BigInt {
-    return this._call.inputValues[0].value.toBigInt();
-  }
-
-  get status(): string {
-    return this._call.inputValues[1].value.toString();
-  }
-}
-
-export class SetStatusCall__Outputs {
-  _call: SetStatusCall;
-
-  constructor(call: SetStatusCall) {
-    this._call = call;
-  }
-}
-
 export class TransferFromCall extends ethereum.Call {
   get inputs(): TransferFromCall__Inputs {
     return new TransferFromCall__Inputs(this);
@@ -1264,6 +1577,40 @@ export class UnpauseCall__Outputs {
   _call: UnpauseCall;
 
   constructor(call: UnpauseCall) {
+    this._call = call;
+  }
+}
+
+export class UpdateDefaultRoyaltyCall extends ethereum.Call {
+  get inputs(): UpdateDefaultRoyaltyCall__Inputs {
+    return new UpdateDefaultRoyaltyCall__Inputs(this);
+  }
+
+  get outputs(): UpdateDefaultRoyaltyCall__Outputs {
+    return new UpdateDefaultRoyaltyCall__Outputs(this);
+  }
+}
+
+export class UpdateDefaultRoyaltyCall__Inputs {
+  _call: UpdateDefaultRoyaltyCall;
+
+  constructor(call: UpdateDefaultRoyaltyCall) {
+    this._call = call;
+  }
+
+  get royaltyReciever(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
+  get percentageBasisPoint(): BigInt {
+    return this._call.inputValues[1].value.toBigInt();
+  }
+}
+
+export class UpdateDefaultRoyaltyCall__Outputs {
+  _call: UpdateDefaultRoyaltyCall;
+
+  constructor(call: UpdateDefaultRoyaltyCall) {
     this._call = call;
   }
 }

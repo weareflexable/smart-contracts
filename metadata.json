@@ -1,0 +1,30 @@
+{
+    "name": "Bottle Service | FlexableNFT",
+    "description": "NFT for getting access to exclusive events around your city without any delay. Get access with Flexable!",
+    "external_url": "https://flexablenft.com",
+    "image": "ipfs://bafkreidtx4nyol3az2s7kbqvqljs7owl7nepifh4dm743xzjansmh6m4x4",
+    "attributes": [
+        {
+            "trait_type": "Venue",
+            "value": "Syracuse, NY"
+        },
+        {
+            "trait_type": "Location",
+            "value": "37.957448, 201.578814"
+        },
+        {
+            "trait_type": "Category",
+            "value": "Bottle Service"
+        },
+        {
+            "display_type": "date", 
+            "trait_type": "Validity Starts",
+            "value": 1679427467000
+        },
+        {
+            "display_type": "date", 
+            "trait_type": "Validity Ends",
+            "value": 1679527467000
+        }
+    ]
+}

@@ -1,22 +1,37 @@
-# FLEXABLE NFT Smart Contract
+# FlexableNFT Smart Contract
 
-Smart contract deployed to matic
+Smart contract deployed to Polygon Network
 
-### Mumbai
-[Explorer](https://mumbai.polygonscan.com/address/0x8d036141f10FE34D739E8C289951F7bE77AB5707#code)
+### Mumbai Testnet
+[Explorer](https://mumbai.polygonscan.com/address/0xDC34c09270bFe7316854E6B58647d63616dEFD6d#code)
 ```
-0x8d036141f10FE34D739E8C289951F7bE77AB5707
+FlexableNFT deployed to 0xDC34c09270bFe7316854E6B58647d63616dEFD6d
 ```
 ### Mainnet
 
-[Explorer](https://polygonscan.com/address/0x0632534712C3aBEf9922Ce3BC587A2f27E25901f#code)
+[IN TESTING]()
 ```
-0x0632534712C3aBEf9922Ce3BC587A2f27E25901f
 ```
 
 # Testing and development
 
-- Install Packages - `npm i`
-- Run tests - `npm run test`
-- After chaging contract write tests(if required) in `test/FlexableNFT.ts` and run `npm run test` again
-- Create new test file if required
+- Install Packages - `yarn install`
+- Run tests - `yarn test`
+- After chaging contract write tests(if required) in `test/FlexableNFT.ts` and run `yarn test` again
+- Coverage - `yarn coverage`
+
+# TheGraph Deployment
+
+```
+graph init --index-events
+graph codegen && graph build
+graph auth --product hosted-service $GRAPH_TOKEN
+graph deploy --product hosted-service weareflexable/flexablenft-mumbai
+```
+
+Build completed: QmY3bCFm9vEMzqh5M1Ya9Fc9nUVgNstMFGzn8XVhQSgceW
+
+Deployed to https://thegraph.com/explorer/subgraph/weareflexable/flexablenft-mumbai
+
+Subgraph endpoints:
+Queries (HTTP):     https://api.thegraph.com/subgraphs/name/weareflexable/flexablenft-mumbai
