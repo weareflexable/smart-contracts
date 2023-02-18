@@ -5,16 +5,18 @@ import { FlexableNFT } from "../typechain-types"
 
 describe("NFT contract", () => {
   let [owner, creator, creator2, buyer, operator]: SignerWithAddress[] = new Array(5)
-  before(async () => {
-    [owner, operator, creator, creator2, buyer] = await ethers.getSigners()
-  })
-  let flexableNFT: FlexableNFT
+    let flexableNFT: FlexableNFT
   const metadata = {
     name: "FlexableNFT",
     symbol: "FLEX",
   }
   before(async () => {
+    [owner, operator, creator, creator2, buyer,operator] = await ethers.getSigners()
+  })
+
+  before(async () => {
     let flexableNFTFactory = await ethers.getContractFactory("FlexableNFT")
+
     flexableNFT = await flexableNFTFactory.deploy(metadata.name, metadata.symbol)
   })
   it("Should return the right name and symbol of the token once FlexableNFT is deployed", async () => {
@@ -64,11 +66,18 @@ describe("NFT contract", () => {
 
   it("Should update status if operator", async () => {
     const status = "test status"
+    const Ticket = await flexableNFT.TicketStatus(1)
+    
+    expect(Ticket.redeemCount).to.be.equal(0)
+
     expect(
       await flexableNFT.connect(operator).
-        setStatus(1, status)
-    ).to.emit(flexableNFT, "StatusUpdated")
-      .withArgs(1, status)
+         redeemTicket(1, status)
+    ).to.emit(flexableNFT, "TicketRedeemed")
+      .withArgs(1,Ticket.redeemCount + 1, status)
+
+    const Ticket2 = await flexableNFT.TicketStatus(1)
+  expect(Ticket2.redeemCount).to.be.equal(1)
   })
 
   it("Should fail to set status if not operator", async () => {
@@ -76,8 +85,48 @@ describe("NFT contract", () => {
     const status = "test status"
     await expect(
       flexableNFT.connect(creator).
-        setStatus(1, status)
+         redeemTicket(1, status)
     ).to.be.revertedWith(`AccessControl: account ${creator.address.toLowerCase()} is missing role ${FLEXABLENFT_OPERATOR_ROLE}`)
   })
+  it("should set the  custom royallty by CREATOR ROLE",async()=>{
+
+      const FLEXABLENFT_CREATOR_ROLE = await flexableNFT.FLEXABLENFT_CREATOR_ROLE()
+
+      await flexableNFT.connect(operator).grantRole(FLEXABLENFT_CREATOR_ROLE, buyer.address)
+
+      await flexableNFT.connect(buyer).createTicketWithCustomRoyalty("www.xyz.con",500);
+
+      const value = await ethers.utils.parseEther("1")
+
+      const royalty = await flexableNFT.royaltyInfo(2,value)
+
+      const recivedAmount = (value.mul(500)).div(10000);
+
+      expect(royalty[1]).to.be.equal(recivedAmount)
+
+      expect(royalty[0]).to.be.equal(buyer.address)
+
+  })
+  it("should set the  custom royallty for delegateTicket ",async()=>{
+
+      const FLEXABLENFT_CREATOR_ROLE = await flexableNFT.FLEXABLENFT_CREATOR_ROLE()
+
+
+      await flexableNFT.connect(operator).delegateTicketCreationWithCustomRoyalty(creator.address,"www.abc.con",owner.address,500);
+
+      const value = await ethers.utils.parseEther("1")
+
+      const royalty = await flexableNFT.royaltyInfo(3,value)
+
+      const recivedAmount = (value.mul(500)).div(10000);
+
+      expect(await flexableNFT.ownerOf(3)).to.be.equal(creator.address);
+
+      expect(royalty[1]).to.be.equal(recivedAmount)
+
+      expect(royalty[0]).to.be.equal(owner.address)
+
+  })
+
 
 })
