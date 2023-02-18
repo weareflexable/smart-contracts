@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.9;
+pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
+import "@openzeppelin/contracts/token/common/ERC2981.sol";
 
 /**
  * @dev {ERC721} token, including:
@@ -29,8 +29,8 @@ contract FlexableNFT is
     Context,
     AccessControlEnumerable,
     ERC721Enumerable,
-    ERC721Burnable,
-    ERC721Pausable
+    ERC721Pausable,
+    ERC2981
 {
     using Counters for Counters.Counter;
 
@@ -46,17 +46,30 @@ contract FlexableNFT is
     // Optional mapping for token URIs
     mapping(uint256 => string) private _tokenURIs;
 
-    struct FlexableNFTNFT {
-        string status;
+    struct Ticket {
+        uint16 redeemCount;
+        string redeemInfo;
     }
 
-    mapping(uint256 => FlexableNFTNFT) public FlexableNFTNFTs;
+    //changed
+    mapping(uint256 => Ticket) public TicketStatus;
+
     event TicketCreated(
         uint256 tokenID,
         address indexed creator,
         string metaDataUri
     );
-    event StatusUpdated(uint256 tokenID, string status);
+    event TicketRedeemed(
+        uint256 indexed tokenID,
+        uint16 indexed count,
+        string info
+    );
+    event TicketBurnt(uint256 indexed tokenId, address indexed ownerOrApproved);
+
+    event RoyaltyUpdated(
+        address indexed reciever,
+        uint256 indexed percentageBasisPoint
+    );
 
     using Strings for uint256;
 
@@ -72,6 +85,8 @@ contract FlexableNFT is
         _setRoleAdmin(FLEXABLENFT_ADMIN_ROLE, FLEXABLENFT_ADMIN_ROLE);
         _setRoleAdmin(FLEXABLENFT_CREATOR_ROLE, FLEXABLENFT_OPERATOR_ROLE);
         _setRoleAdmin(FLEXABLENFT_OPERATOR_ROLE, FLEXABLENFT_ADMIN_ROLE);
+
+        _setDefaultRoyalty(_msgSender(), 500);
     }
 
     /**
@@ -85,17 +100,15 @@ contract FlexableNFT is
      *
      * - the caller must have the `FLEXABLENFT_CREATOR_ROLE`.
      */
-    function createTicket(string memory metadataHash)
-        public
-        onlyRole(FLEXABLENFT_CREATOR_ROLE)
-        returns (uint256)
-    {
+    function createTicket(
+        string memory metadataURI
+    ) public onlyRole(FLEXABLENFT_CREATOR_ROLE) returns (uint256) {
         // We cannot just use balanceOf to create the new tokenId because tokens
         // can be burned (destroyed), so we need a separate counter.
         _tokenIdTracker.increment();
         uint256 currentTokenID = _tokenIdTracker.current();
         _safeMint(_msgSender(), currentTokenID);
-        _setTokenURI(currentTokenID, metadataHash);
+        _setTokenURI(currentTokenID, metadataURI);
 
         emit TicketCreated(
             currentTokenID,
@@ -105,12 +118,26 @@ contract FlexableNFT is
         return currentTokenID;
     }
 
-    function setStatus(uint256 tokenId, string memory status)
-        public
-        onlyRole(FLEXABLENFT_OPERATOR_ROLE)
-    {
-        FlexableNFTNFTs[tokenId].status = status;
-        emit StatusUpdated(tokenId, status);
+    function createTicketWithCustomRoyalty(
+        string memory metadataURI,
+        uint256 royaltyPercentBasisPoint
+    ) public onlyRole(FLEXABLENFT_CREATOR_ROLE) returns (uint256) {
+        _tokenIdTracker.increment();
+        uint256 currentTokenID = _tokenIdTracker.current();
+        _safeMint(_msgSender(), currentTokenID);
+        _setTokenURI(currentTokenID, metadataURI);
+
+        emit TicketCreated(
+            currentTokenID,
+            _msgSender(),
+            tokenURI(currentTokenID)
+        );
+        _setTokenRoyalty(
+            currentTokenID,
+            _msgSender(),
+            uint96(royaltyPercentBasisPoint)
+        );
+        return currentTokenID;
     }
 
     /**
@@ -122,34 +149,81 @@ contract FlexableNFT is
      *
      * Requirements:
      *
-     * - the caller must have the `FLEXABLENFT_CREATOR_ROLE`.
+     * - the caller must have the `FLEXABLENFT_OPERATOR_ROLE`.
      */
-    function delegateTicketCreation(address creator, string memory metadataHash)
-        public
-        onlyRole(FLEXABLENFT_OPERATOR_ROLE)
-        returns (uint256)
-    {
+    function delegateTicketCreation(
+        address creator,
+        string memory metadataURI
+    ) public onlyRole(FLEXABLENFT_OPERATOR_ROLE) returns (uint256) {
         // We cannot just use balanceOf to create the new tokenId because tokens
         // can be burned (destroyed), so we need a separate counter.
         _tokenIdTracker.increment();
         uint256 currentTokenID = _tokenIdTracker.current();
         _safeMint(creator, currentTokenID);
-        _setTokenURI(currentTokenID, metadataHash);
+        _setTokenURI(currentTokenID, metadataURI);
 
-        emit TicketCreated(currentTokenID, creator, metadataHash);
+        emit TicketCreated(currentTokenID, creator, metadataURI);
         return currentTokenID;
+    }
+
+    function delegateTicketCreationWithCustomRoyalty(
+        address creator,
+        string memory metadataURI,
+        address royaltyaddress,
+        uint256 royaltyPercentBasisPoint
+    ) public onlyRole(FLEXABLENFT_OPERATOR_ROLE) returns (uint256) {
+        _tokenIdTracker.increment();
+        uint256 currentTokenID = _tokenIdTracker.current();
+
+        _safeMint(creator, currentTokenID);
+
+        _setTokenURI(currentTokenID, metadataURI);
+
+        _setTokenRoyalty(
+            currentTokenID,
+            royaltyaddress,
+            uint96(royaltyPercentBasisPoint)
+        );
+
+        emit TicketCreated(currentTokenID, creator, metadataURI);
+
+        return currentTokenID;
+    }
+
+    /// @dev creates data token
+    function redeemTicket(
+        uint256 tokenId,
+        string memory info
+    ) public onlyRole(FLEXABLENFT_OPERATOR_ROLE) {
+        TicketStatus[tokenId].redeemInfo = info;
+        TicketStatus[tokenId].redeemCount++;
+
+        emit TicketRedeemed(tokenId, TicketStatus[tokenId].redeemCount, info);
+    }
+
+    /**
+     *  Burns `tokenId`. See {ERC721-_burn}.
+     *
+     * Requirements:
+     *
+     * - The caller must own `tokenId` or be an approved operator.
+     */
+    function burnTicket(uint256 tokenId) public {
+        require(
+            _isApprovedOrOwner(_msgSender(), tokenId),
+            "FlexableNFT: Not Owner Or Approved"
+        );
+        _burn(tokenId);
+        emit TicketBurnt(tokenId, _msgSender());
+        _resetTokenRoyalty(tokenId);
     }
 
     /**
      * @dev See {IERC721Metadata-tokenURI}.
      */
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (string memory)
-    {
+    function tokenURI(
+        uint256 tokenId
+    ) public view virtual override returns (string memory) {
         require(_exists(tokenId), "FlexableNFT: Non-Existent Ticket");
         string memory _tokenURI = _tokenURIs[tokenId];
 
@@ -163,10 +237,10 @@ contract FlexableNFT is
      *
      * - `tokenId` must exist.
      */
-    function _setTokenURI(uint256 tokenId, string memory _tokenURI)
-        internal
-        virtual
-    {
+    function _setTokenURI(
+        uint256 tokenId,
+        string memory _tokenURI
+    ) internal virtual {
         require(_exists(tokenId), "FlexableNFT: Non-Existent Ticket");
         _tokenURIs[tokenId] = _tokenURI;
     }
@@ -200,19 +274,30 @@ contract FlexableNFT is
     function _beforeTokenTransfer(
         address from,
         address to,
-        uint256 tokenId
-    ) internal virtual override(ERC721, ERC721Enumerable, ERC721Pausable) {
-        super._beforeTokenTransfer(from, to, tokenId);
+        uint256 tokenID,
+        uint256 batchsize
+    ) internal virtual override(ERC721Enumerable, ERC721Pausable) {
+        super._beforeTokenTransfer(from, to, tokenID, batchsize);
+    }
+
+    function updateDefaultRoyalty(
+        address royaltyReciever,
+        uint256 percentageBasisPoint
+    ) external view onlyRole(FLEXABLENFT_ADMIN_ROLE) {
+        _setDefaultRoyalty(royaltyReciever, percentageBasisPoint);
+        emit RoyaltyUpdated(royaltyReciever, percentageBasisPoint);
     }
 
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId)
+    function supportsInterface(
+        bytes4 interfaceId
+    )
         public
         view
         virtual
-        override(AccessControlEnumerable, ERC721, ERC721Enumerable)
+        override(AccessControlEnumerable, ERC721, ERC721Enumerable, ERC2981)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
