@@ -64,7 +64,12 @@ contract FlexableNFT is
         uint16 indexed count,
         string info
     );
-    event TicketBurnt(uint256 indexed tokeId, address indexed ownerOrApproved);
+    event TicketBurnt(uint256 indexed tokenId, address indexed ownerOrApproved);
+
+    event RoyaltyUpdated(
+        address indexed reciever,
+        uint256 indexed percentageBasisPoint
+    );
 
     using Strings for uint256;
 
@@ -275,8 +280,12 @@ contract FlexableNFT is
         super._beforeTokenTransfer(from, to, tokenID, batchsize);
     }
 
-    function tokenCurrent() external view returns (uint256) {
-        return _tokenIdTracker.current();
+    function updateDefaultRoyalty(
+        address royaltyReciever,
+        uint256 percentageBasisPoint
+    ) external view onlyRole(FLEXABLENFT_ADMIN_ROLE) {
+        _setDefaultRoyalty(royaltyReciever, percentageBasisPoint);
+        emit RoyaltyUpdated(royaltyReciever, percentageBasisPoint);
     }
 
     /**
