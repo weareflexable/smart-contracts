@@ -89,7 +89,7 @@ describe("NFT contract", () => {
     ).to.be.revertedWith(`AccessControl: account ${creator.address.toLowerCase()} is missing role ${FLEXABLENFT_OPERATOR_ROLE}`)
   })
   it("should set the  custom royallty by CREATOR ROLE", async () => {
-
+  
     const FLEXABLENFT_CREATOR_ROLE = await flexableNFT.FLEXABLENFT_CREATOR_ROLE()
 
     await flexableNFT.connect(operator).grantRole(FLEXABLENFT_CREATOR_ROLE, buyer.address)
@@ -127,6 +127,27 @@ describe("NFT contract", () => {
     expect(royalty[0]).to.be.equal(owner.address)
 
   })
+  it("should check Create Ticket", async () =>{
+        const metaData = "www.abc.com"
+        expect(await flexableNFT.connect(buyer).createTicket(metaData)).to.emit(flexableNFT,"TicketCreated")
+        expect(await flexableNFT.ownerOf(2)).to.be.equal(buyer.address)
+  })
+  it("Burn Nft",async () => {
+      await flexableNFT.connect(buyer).burnTicket(2)
+      expect(flexableNFT.ownerOf(2)).to.not.equal(buyer.address)
+  })
+  it("Update the Royalty",async () => {
+        expect(await flexableNFT.updateDefaultRoyalty(buyer.address , 1000)).to.emit(flexableNFT , "RoyaltyUpdated")
+        const royalty = await flexableNFT.royaltyInfo(4 , 1)
+        expect(royalty[0]).to.be.equal(buyer.address)
+  })
+  it("pause and Unpause",async () => {
+    await flexableNFT.connect(operator).pause()
+    expect(await flexableNFT.ownerOf(4)).to.be.equal(buyer.address)
+    expect(flexableNFT.transferFrom(buyer.address,owner.address,4)).to.be.reverted
+    await flexableNFT.connect(operator).unpause()
+    await flexableNFT.connect(buyer).transferFrom(buyer.address,owner.address,4)
+    expect(await flexableNFT.ownerOf(4)).to.be.equal(owner.address)
 
-
+  })
 })
