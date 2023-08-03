@@ -141,13 +141,4 @@ describe("NFT contract", () => {
         const royalty = await flexableNFT.royaltyInfo(4 , 1)
         expect(royalty[0]).to.be.equal(buyer.address)
   })
-  it("pause and Unpause",async () => {
-    await flexableNFT.connect(operator).pause()
-    expect(await flexableNFT.ownerOf(4)).to.be.equal(buyer.address)
-    expect(flexableNFT.transferFrom(buyer.address,owner.address,4)).to.be.reverted
-    await flexableNFT.connect(operator).unpause()
-    await flexableNFT.connect(buyer).transferFrom(buyer.address,owner.address,4)
-    expect(await flexableNFT.ownerOf(4)).to.be.equal(owner.address)
-
-  })
 })

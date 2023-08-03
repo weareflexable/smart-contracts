@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/token/common/ERC2981.sol";
 
 /**
@@ -29,7 +28,6 @@ contract FlexableNFT is
     Context,
     AccessControlEnumerable,
     ERC721Enumerable,
-    ERC721Pausable,
     ERC2981
 {
     using Counters for Counters.Counter;
@@ -202,38 +200,12 @@ contract FlexableNFT is
         _tokenURIs[tokenId] = _tokenURI;
     }
 
-    /**
-     * @dev Pauses all token transfers.
-     *
-     * See {ERC721Pausable} and {Pausable-_pause}.
-     *
-     * Requirements:
-     *
-     * - the caller must have the `FLEXABLENFT_OPERATOR_ROLE`.
-     */
-    function pause() public onlyRole(FLEXABLENFT_OPERATOR_ROLE) {
-        _pause();
-    }
-
-    /**
-     * @dev Unpauses all token transfers.
-     *
-     * See {ERC721Pausable} and {Pausable-_unpause}.
-     *
-     * Requirements:
-     *
-     * - the caller must have the `FLEXABLENFT_OPERATOR_ROLE`.
-     */
-    function unpause() public onlyRole(FLEXABLENFT_OPERATOR_ROLE) {
-        _unpause();
-    }
-
     function _beforeTokenTransfer(
         address from,
         address to,
         uint256 tokenID,
         uint256 batchsize
-    ) internal virtual override(ERC721Enumerable, ERC721Pausable) {
+    ) internal virtual override(ERC721Enumerable) {
         super._beforeTokenTransfer(from, to, tokenID, batchsize);
     }
 
@@ -251,7 +223,7 @@ contract FlexableNFT is
         public
         view
         virtual
-        override(AccessControlEnumerable, ERC721, ERC721Enumerable, ERC2981)
+        override(AccessControlEnumerable, ERC721Enumerable, ERC2981)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

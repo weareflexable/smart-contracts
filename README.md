@@ -9,8 +9,9 @@ FlexableNFT deployed to 0xDC34c09270bFe7316854E6B58647d63616dEFD6d
 ```
 ### Mainnet
 
-[IN TESTING]()
+[Explorer](https://polygonscan.com/address/0x0B6bf4A1769Cc286269Ca4954c638eb0D323161c#code)
 ```
+FlexableNFT deployed to 0x0B6bf4A1769Cc286269Ca4954c638eb0D323161c
 ```
 
 # Testing and development
@@ -19,19 +20,21 @@ FlexableNFT deployed to 0xDC34c09270bFe7316854E6B58647d63616dEFD6d
 - Run tests - `yarn test`
 - After chaging contract write tests(if required) in `test/FlexableNFT.ts` and run `yarn test` again
 - Coverage - `yarn coverage`
+- Deploy - `yarn hardhat run scripts/deploy.ts --network matic`
+- Verify - `yarn hardhat verify --network matic 0x0B6bf4A1769Cc286269Ca4954c638eb0D323161c "FlexableNFT" "FLEX"`
 
 # TheGraph Deployment
 
 ```
-graph init --index-events
+graph init --product hosted-service weareflexable/flexablenft
 graph codegen && graph build
 graph auth --product hosted-service $GRAPH_TOKEN
-graph deploy --product hosted-service weareflexable/flexablenft-mumbai
+graph deploy --product hosted-service weareflexable/flexablenft
 ```
 
-Build completed: QmY3bCFm9vEMzqh5M1Ya9Fc9nUVgNstMFGzn8XVhQSgceW
+Build completed: QmPSBigtJhXK72PnCMVFDm7aLVkzWK6o7NS5Z2qX9E2q4q
 
-Deployed to https://thegraph.com/explorer/subgraph/weareflexable/flexablenft-mumbai
+Deployed to https://thegraph.com/explorer/subgraph/weareflexable/flexablenft
 
 Subgraph endpoints:
-Queries (HTTP):     https://api.thegraph.com/subgraphs/name/weareflexable/flexablenft-mumbai
+Queries (HTTP):     https://api.thegraph.com/subgraphs/name/weareflexable/flexablenft
