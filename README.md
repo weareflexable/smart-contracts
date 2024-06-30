@@ -2,10 +2,10 @@
 
 Smart contract deployed to Polygon Network
 
-### Mumbai Testnet
-[Explorer](https://mumbai.polygonscan.com/address/0xDC34c09270bFe7316854E6B58647d63616dEFD6d#code)
+### Base Sepolia Testnet
+[Explorer](https://sepolia.basescan.org/address/0x900eeDD8F96c1623Fe9125531ea3a90e1318f9bB#code)
 ```
-FlexableNFT deployed to 0xDC34c09270bFe7316854E6B58647d63616dEFD6d
+FlexableNFT deployed to 0x900eeDD8F96c1623Fe9125531ea3a90e1318f9bB
 ```
 ### Mainnet
 
