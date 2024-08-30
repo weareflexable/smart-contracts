@@ -23,7 +23,7 @@ import "@openzeppelin/contracts/token/common/ERC2981.sol";
  * roles, as well as the default admin role, which will let it grant both creator
  * and pauser roles to other accounts.
  */
-contract FlexableNFT is
+contract FlexableNFTV2 is
     Context,
     AccessControlEnumerable,
     ERC721Enumerable,
@@ -75,11 +75,10 @@ contract FlexableNFT is
      * See {ERC721-tokenURI}.
      */
     constructor(string memory name, string memory symbol) ERC721(name, symbol) {
-        // _setupRole(FLEXABLENFT_ADMIN_ROLE, _msgSender());
-        _grantRole(FLEXABLENFT_ADMIN_ROLE, _msgSender());
         _setRoleAdmin(FLEXABLENFT_ADMIN_ROLE, FLEXABLENFT_ADMIN_ROLE);
         _setRoleAdmin(FLEXABLENFT_OPERATOR_ROLE, FLEXABLENFT_ADMIN_ROLE);
         _setRoleAdmin(FLEXABLENFT_CREATOR_ROLE, FLEXABLENFT_OPERATOR_ROLE);
+        _grantRole(FLEXABLENFT_ADMIN_ROLE, _msgSender());
 
         _setDefaultRoyalty(_msgSender(), 500);
     }
@@ -100,7 +99,8 @@ contract FlexableNFT is
     ) public onlyRole(FLEXABLENFT_CREATOR_ROLE) returns (uint256) {
         // We cannot just use balanceOf to create the new tokenId because tokens
         // can be burned (destroyed), so we need a separate counter.
-        uint256 currentTokenID = nextTokenId++;
+        nextTokenId++;
+        uint256 currentTokenID = nextTokenId;
         _safeMint(_msgSender(), currentTokenID);
         _setTokenURI(currentTokenID, metadataURI);
 
@@ -116,7 +116,8 @@ contract FlexableNFT is
         string memory metadataURI,
         uint96 royaltyPercentBasisPoint
     ) public onlyRole(FLEXABLENFT_CREATOR_ROLE) returns (uint256) {
-        uint256 currentTokenID = nextTokenId++;
+        nextTokenId++;
+        uint256 currentTokenID = nextTokenId;
         _safeMint(_msgSender(), currentTokenID);
         _setTokenURI(currentTokenID, metadataURI);
 
@@ -148,7 +149,8 @@ contract FlexableNFT is
         address creator,
         string memory metadataURI
     ) public onlyRole(FLEXABLENFT_OPERATOR_ROLE) returns (uint256) {
-        uint256 currentTokenID = nextTokenId++;
+        nextTokenId++;
+        uint256 currentTokenID = nextTokenId;
         _safeMint(creator, currentTokenID);
         _setTokenURI(currentTokenID, metadataURI);
 
@@ -162,7 +164,8 @@ contract FlexableNFT is
         address royaltyaddress,
         uint96 royaltyPercentBasisPoint
     ) public onlyRole(FLEXABLENFT_OPERATOR_ROLE) returns (uint256) {
-        uint256 currentTokenID = nextTokenId++;
+        nextTokenId++;
+        uint256 currentTokenID = nextTokenId;
 
         _safeMint(creator, currentTokenID);
         _setTokenURI(currentTokenID, metadataURI);
@@ -236,7 +239,7 @@ contract FlexableNFT is
         );
         _tokenURIs[tokenId] = _tokenURI;
     }
-
+    
     function updateDefaultRoyalty(
         address royaltyReciever,
         uint96 percentageBasisPoint
