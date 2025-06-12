@@ -72,10 +72,10 @@ module.exports = {
     baseTestnet: {
       networkId: 84532,
       url: BASE_TESTNET_RPC_URL,
-      // accounts : [PRIVATE_KEY],
-      accounts: {
-        mnemonic: MNEMONIC,
-      },
+      accounts: [PRIVATE_KEY],
+      // accounts: {
+      //   mnemonic: MNEMONIC,
+      // },
     },
     polygon: {
       networkId: 137,
