@@ -10,49 +10,47 @@ import "@openzeppelin/contracts/utils/Strings.sol";
  * @title FlexablePassNFT
  * @dev NFT contract for community passes - minted when users purchase services
  */
-contract FlexablePassNFT is ERC721, ERC721URIStorage, AccessControl {
+contract FlexablePass is ERC721, ERC721URIStorage, AccessControl {
     // Roles
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     // Token tracking
     uint256 private _tokenIdCounter;
-    // Metadata
-    struct PassMetadata {
-        uint256 communityId;
-        uint256 purchaseDate;
-        address originalBuyer;
+
+    enum PassType {
+        GENERAL,
+        EXCLUSIVE_ACCESS,
+        COMMUNITY_ACCESS,
+        EVENT_ACCESS
     }
 
-    mapping(uint256 => PassMetadata) public passMetadata;
+    struct Pass {
+        PassType passType;
+        uint256 passId;
+        string passURI;
+    }
+
+    mapping(uint256 => Pass) public pass;
 
     // Events
-    event PassMinted(
-        uint256 indexed tokenId,
-        address indexed recipient,
-        uint256 communityId
-    );
+    event PassMinted(uint256 indexed tokenId, address indexed recipient);
 
-    constructor() ERC721("Flexable Community Pass", "FLEX") {
+    constructor() ERC721("Flexable Pass", "FLEXPASS") {
         _grantRole(ADMIN_ROLE, msg.sender);
         _tokenIdCounter = 1; // Start token IDs at 1
     }
 
     function mintPass(
         address to,
-        uint256 communityId,
+        uint8 passtype,
+        uint256 passId,
         string memory _uri
     ) external onlyRole(MINTER_ROLE) returns (uint256) {
+        require(passtype <= 3, "Invalid pass type");
         uint256 tokenId = _tokenIdCounter;
         _tokenIdCounter++;
 
         _safeMint(to, tokenId);
-
-        // Store metadata
-        passMetadata[tokenId] = PassMetadata({
-            communityId: communityId,
-            purchaseDate: block.timestamp,
-            originalBuyer: to
-        });
 
         // Set token URI (you can customize this)
         string memory uri = string(
@@ -60,7 +58,13 @@ contract FlexablePassNFT is ERC721, ERC721URIStorage, AccessControl {
         );
         _setTokenURI(tokenId, uri);
 
-        emit PassMinted(tokenId, to, communityId);
+        PassType _passType = PassType(passtype);
+
+        pass[tokenId] = Pass({
+            passType: _passType,
+            passId: passId,
+            passURI: uri
+        });
 
         return tokenId;
     }
@@ -71,7 +75,7 @@ contract FlexablePassNFT is ERC721, ERC721URIStorage, AccessControl {
     function updateTokenURI(
         uint256 tokenId,
         string memory newURI
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external onlyRole(ADMIN_ROLE) {
         require(_ownerOf(tokenId) != address(0), "Token does not exist");
         _setTokenURI(tokenId, newURI);
     }

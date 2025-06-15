@@ -17,12 +17,12 @@ async function main() {
 
   /// VERIFY
   if (hre.network.name != "hardhat") {
-    await Flexable.deployTransaction.wait(6);
-    await verify(Flexable.address, ["Flexable", "FLX"]);
+    await FlexablePassNFT.deployTransaction.wait(6);
+    await verify(FlexablePassNFT.address, []);
   }
 
   /// DEPLOY FlexablePaymentSplitter
-  const USDC_ADDRESS = "0xa34a5a599D6087b0f10247F08986B8dD34Df800c";
+  const USDC_ADDRESS = "0x214f178D9b1a888C48a1E8f329065Fba011d17F2";
   console.log("Deploying FlexablePaymentSplitter...");
   const FlexablePaymentSplitterFactory = await hre.ethers.getContractFactory(
     "FlexablePaymentSplitter"

@@ -275,3 +275,8 @@ MIT License - see LICENSE file for details.
 4. Submit pull request with detailed description
 
 ---
+
+## TODO
+1. Add tradehub which will be named FlexableMarketplace
+2. Add FlexableAuth will be contract where Admin , Operator and Mintor for all contracts within Flexable.
+3. Scalydiagram

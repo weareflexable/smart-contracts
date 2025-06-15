@@ -115,3 +115,6 @@ package-lock.json
 cache
 artifacts
 
+Notes.md
+MockERC20.sol
+deploy2.js
