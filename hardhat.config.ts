@@ -39,7 +39,7 @@ const BASESCAN_API_KEY = process.env.BASESCAN_API_KEY || "Basescan API Key";
 
 module.exports = {
   solidity: {
-    version: "0.8.20",
+    version: "0.8.25",
     settings: {
       optimizer: {
         enabled: true,
@@ -72,10 +72,10 @@ module.exports = {
     baseTestnet: {
       networkId: 84532,
       url: BASE_TESTNET_RPC_URL,
-      // accounts : [PRIVATE_KEY],
-      accounts: {
-        mnemonic: MNEMONIC,
-      },
+      accounts: [PRIVATE_KEY],
+      // accounts: {
+      //   mnemonic: MNEMONIC,
+      // },
     },
     polygon: {
       networkId: 137,
