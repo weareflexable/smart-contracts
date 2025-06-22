@@ -3,17 +3,15 @@ pragma solidity 0.8.25;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "./IFlexableAuth.sol";
 
 /**
  * @title FlexablePassNFT
  * @dev NFT contract for community passes - minted when users purchase services
  */
-contract FlexablePass is ERC721, ERC721URIStorage, AccessControl {
-    // Roles
-    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+contract FlexablePass is ERC721, ERC721URIStorage {
+    IFlexableAuth private flexableAuth;
     // Token tracking
     uint256 private _tokenIdCounter;
 
@@ -35,9 +33,9 @@ contract FlexablePass is ERC721, ERC721URIStorage, AccessControl {
     // Events
     event PassMinted(uint256 indexed tokenId, address indexed recipient);
 
-    constructor() ERC721("Flexable Pass", "FLEXPASS") {
-        _grantRole(ADMIN_ROLE, msg.sender);
-        _tokenIdCounter = 1; // Start token IDs at 1
+    constructor(address _flexableAuth) ERC721("Flexable Pass", "FLEXPASS") {
+        _tokenIdCounter = 1;
+        flexableAuth = IFlexableAuth(_flexableAuth);
     }
 
     function mintPass(
@@ -45,8 +43,9 @@ contract FlexablePass is ERC721, ERC721URIStorage, AccessControl {
         uint8 passtype,
         uint256 passId,
         string memory _uri
-    ) external onlyRole(MINTER_ROLE) returns (uint256) {
-        require(passtype <= 3, "Invalid pass type");
+    ) external returns (uint256) {
+        require(flexableAuth.isMinter(_msgSender()), "Not a minter");
+        require(passtype < 4, "Invalid pass type");
         uint256 tokenId = _tokenIdCounter;
         _tokenIdCounter++;
 
@@ -72,10 +71,8 @@ contract FlexablePass is ERC721, ERC721URIStorage, AccessControl {
     /**
      * @dev Update token URI (admin only)
      */
-    function updateTokenURI(
-        uint256 tokenId,
-        string memory newURI
-    ) external onlyRole(ADMIN_ROLE) {
+    function updateTokenURI(uint256 tokenId, string memory newURI) external {
+        require(flexableAuth.isOperator(_msgSender()), "Not an operator");
         require(_ownerOf(tokenId) != address(0), "Token does not exist");
         _setTokenURI(tokenId, newURI);
     }
@@ -104,12 +101,7 @@ contract FlexablePass is ERC721, ERC721URIStorage, AccessControl {
 
     function supportsInterface(
         bytes4 interfaceId
-    )
-        public
-        view
-        override(ERC721, ERC721URIStorage, AccessControl)
-        returns (bool)
-    {
+    ) public view override(ERC721, ERC721URIStorage) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }
