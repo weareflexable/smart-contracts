@@ -11,40 +11,51 @@ contract FlexableVendor is ERC721 {
     uint256 private counter = 1;
 
     struct VendorInfo {
-        address wallet;
+        address payoutWallet;
         string name;
         string serviceMetadata;
+        bool isActive;
+        bool isVerified;
     }
 
     mapping(uint256 => string) private _tokenURIs;
     mapping(uint256 => VendorInfo) private _vendorInfo;
 
-    event VendorMinted(address to, uint256 tokenId);
+    event VendorCreated(
+        address indexed to,
+        uint256 indexed tokenId,
+        string name,
+        string serviceMetadata
+    );
 
     constructor(
         address _flexableAuthAddr
-    ) ERC721("FlexableVendor", "FLEXABLEVENDOR") {
+    ) ERC721("FlexableVendor", "FLEXVENDOR") {
         flexableAuth = IFlexableAuth(_flexableAuthAddr);
     }
 
-    function mintVendor(
+    // ===== MAIN FUNCTIONS =====
+    //Changes -
+    //  Give an Array of VendorInfo , and create vendors for each of them.
+    function createVendor(
         address to,
         string memory _name,
         string memory _uri
     ) public {
-        require(flexableAuth.isMinter(_msgSender()), "Not a minter");
-        require(balanceOf(to) == 0, "Vendor already minted");
+        require(balanceOf(to) == 0, "Vendor already created");
         uint256 tokenId = counter;
 
         _safeMint(to, tokenId);
         _tokenURIs[tokenId] = _uri;
         _vendorInfo[tokenId] = VendorInfo({
-            wallet: to,
+            payoutWallet: to,
             name: _name,
-            serviceMetadata: _uri
+            serviceMetadata: _uri,
+            isActive: true,
+            isVerified: false
         });
         counter++;
-        emit VendorMinted(to, tokenId);
+        emit VendorCreated(to, tokenId, _name, _uri);
     }
 
     function setTokenURI(uint256 tokenId, string memory _uri) public {
@@ -53,19 +64,23 @@ contract FlexableVendor is ERC721 {
     }
 
     function burnVendor(uint256 tokenId) public {
-        require(_vendorInfo[tokenId].wallet == _msgSender(), "Not the owner");
+        require(ownerOf(tokenId) == _msgSender(), "Not the owner");
         _burn(tokenId);
     }
 
     function updateVendorWallet(uint256 tokenId, address _wallet) public {
-        require(_vendorInfo[tokenId].wallet == _msgSender(), "Not the owner");
-        _vendorInfo[tokenId].wallet = _wallet;
+        require(ownerOf(tokenId) == _msgSender(), "Not the Owner");
+        _vendorInfo[tokenId].payoutWallet = _wallet;
     }
 
     function tokenIdToVendorWallet(
         uint256 tokenId
     ) public view returns (address) {
-        return _vendorInfo[tokenId].wallet;
+        return _vendorInfo[tokenId].payoutWallet;
+    }
+
+    function isVendorActive(uint256 tokenId) external view returns (bool) {
+        return _vendorInfo[tokenId].isActive;
     }
 
     function tokenURI(
