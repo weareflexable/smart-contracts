@@ -41,10 +41,8 @@ contract FlexableVendor is ERC721 {
         address to,
         string memory _name,
         string memory _uri
-    ) public {
-        require(balanceOf(to) == 0, "Vendor already created");
+    ) external returns (uint256) {
         uint256 tokenId = counter;
-
         _safeMint(to, tokenId);
         _tokenURIs[tokenId] = _uri;
         _vendorInfo[tokenId] = VendorInfo({
@@ -56,11 +54,21 @@ contract FlexableVendor is ERC721 {
         });
         counter++;
         emit VendorCreated(to, tokenId, _name, _uri);
+        return tokenId;
     }
 
     function setTokenURI(uint256 tokenId, string memory _uri) public {
         require(flexableAuth.isOperator(_msgSender()), "Not an operator");
         _tokenURIs[tokenId] = _uri;
+    }
+
+    function setVendorActive(uint256 tokenId, bool _isActive) public {
+        require(
+            flexableAuth.isOperator(_msgSender()) ||
+                ownerOf(tokenId) == _msgSender(),
+            "Not the owner"
+        );
+        _vendorInfo[tokenId].isActive = _isActive;
     }
 
     function burnVendor(uint256 tokenId) public {

@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "./IFlexableAuth.sol";
+import "hardhat/console.sol";
 
 interface IFlexablePass {
     function mintPass(
@@ -156,7 +157,9 @@ contract FlexableCommunity is ReentrancyGuard, Context {
     constructor(
         address stablecoin,
         address _platformWallet,
-        address _flexableAuth
+        address _flexableAuth,
+        address _flexableVendor,
+        address _flexablePass
     ) {
         require(stablecoin != address(0), "Invalid stablecoin address");
         require(_platformWallet != address(0), "Invalid platform wallet");
@@ -166,6 +169,8 @@ contract FlexableCommunity is ReentrancyGuard, Context {
         flexableWallet = _platformWallet;
         flexableAuthAddr = _flexableAuth;
         flexableAuth = IFlexableAuth(_flexableAuth);
+        flexableVendor = IFlexableVendor(_flexableVendor);
+        nftPass = IFlexablePass(_flexablePass);
     }
 
     // ===== MAIN FUNCTIONS =====
@@ -271,10 +276,7 @@ contract FlexableCommunity is ReentrancyGuard, Context {
      * @dev Internal function to split payments 🔥
      * Order: Platform fee → Manager fee → Vendors (based on community payment type)
      */
-    function _splitPayment(
-        uint256 communityId,
-        uint256 amount
-    ) internal nonReentrant {
+    function _splitPayment(uint256 communityId, uint256 amount) internal {
         Community storage community = communities[communityId];
         uint256 totalAmount = amount;
 

@@ -2,12 +2,74 @@ const fs = require("fs");
 const { ethers, run, network } = require("hardhat");
 
 async function main() {
-  /// DEPLOY FlexablePassNFT
+  let owner = await ethers.getSigner();
+  console.log("Owner address:", owner.address);
+
+  /**************************** DEPLOY AUTH ****************************/
+  console.log("Deploying FlexableAuth...");
+  const FlexableAuthFactory = await hre.ethers.getContractFactory(
+    "FlexableAuth"
+  );
+  const FlexableAuth = await FlexableAuthFactory.deploy();
+
+  await FlexableAuth.deployed();
+
+  console.log("FlexableAuth Contract Deployed to:", FlexableAuth.address);
+  contractAddress = FlexableAuth.address;
+  blockNumber = FlexableAuth.provider._maxInternalBlockNumber;
+
+  /// VERIFY
+
+  if (hre.network.name != "hardhat") {
+    await FlexableAuth.deployTransaction.wait(6);
+    await verify(FlexableAuth.address, []);
+  }
+
+  /**************************** DEPLOY FlexablePassNFT ****************************/
+  console.log("Deploying MockERC20...");
+  const RCFactory = await hre.ethers.getContractFactory("MockERC20");
+  const MockERC20 = await RCFactory.deploy();
+
+  await MockERC20.deployed();
+
+  console.log("MockERC20 Contract Deployed to:", MockERC20.address);
+  contractAddress = MockERC20.address;
+
+  /// VERIFY
+  if (hre.network.name != "hardhat") {
+    await MockERC20.deployTransaction.wait(6);
+    await verify(MockERC20.address, []);
+  }
+
+  /**************************** DEPLOY FlexableVendor ****************************/
+  console.log("Deploying FlexableVendor...");
+  const FlexableVendorFactory = await hre.ethers.getContractFactory(
+    "FlexableVendor"
+  );
+  const FlexableVendor = await FlexableVendorFactory.deploy(
+    FlexableAuth.address
+  );
+
+  await FlexableVendor.deployed();
+
+  console.log("FlexableVendor Contract Deployed to:", FlexableVendor.address);
+  contractAddress = FlexableVendor.address;
+  blockNumber = FlexableVendor.provider._maxInternalBlockNumber;
+
+  /// VERIFY
+  if (hre.network.name != "hardhat") {
+    await FlexableVendor.deployTransaction.wait(6);
+    await verify(FlexableVendor.address, [FlexableAuth.address]);
+  }
+
+  /**************************** DEPLOY FlexablePassNFT ****************************/
   console.log("Deploying FlexablePassNFT...");
   const FlexablePassNFTFactory = await hre.ethers.getContractFactory(
-    "FlexablePassNFT"
+    "FlexablePass"
   );
-  const FlexablePassNFT = await FlexablePassNFTFactory.deploy();
+  const FlexablePassNFT = await FlexablePassNFTFactory.deploy(
+    FlexableAuth.address
+  );
 
   await FlexablePassNFT.deployed();
 
@@ -18,31 +80,39 @@ async function main() {
   /// VERIFY
   if (hre.network.name != "hardhat") {
     await FlexablePassNFT.deployTransaction.wait(6);
-    await verify(FlexablePassNFT.address, []);
+    await verify(FlexablePassNFT.address, [FlexableAuth.address]);
   }
 
-  /// DEPLOY FlexablePaymentSplitter
-  const USDC_ADDRESS = "0x214f178D9b1a888C48a1E8f329065Fba011d17F2";
-  console.log("Deploying FlexablePaymentSplitter...");
-  const FlexablePaymentSplitterFactory = await hre.ethers.getContractFactory(
-    "FlexablePaymentSplitter"
+  /**************************** DEPLOY Community ****************************/
+  console.log("Deploying FlexableCommunity...");
+  const FlexableCommunityFactory = await hre.ethers.getContractFactory(
+    "FlexableCommunity"
   );
-  const FlexablePaymentSplitter = await FlexablePaymentSplitterFactory.deploy(
-    USDC_ADDRESS,
+  const FlexableCommunity = await FlexableCommunityFactory.deploy(
+    MockERC20.address,
+    owner.address,
+    FlexableAuth.address,
+    FlexableVendor.address,
     FlexablePassNFT.address
   );
 
-  await FlexablePaymentSplitter.deployed();
+  await FlexableCommunity.deployed();
 
-  console.log("FlexablePassNFT Contract Deployed to:", FlexablePassNFT.address);
-  contractAddress = FlexablePassNFT.address;
-  blockNumber = FlexablePassNFT.provider._maxInternalBlockNumber;
+  console.log(
+    "FlexableCommunity Contract Deployed to:",
+    FlexableCommunity.address
+  );
+  contractAddress = FlexableCommunity.address;
+  blockNumber = FlexableCommunity.provider._maxInternalBlockNumber;
 
   /// VERIFY
   if (hre.network.name != "hardhat") {
-    await FlexablePaymentSplitter.deployTransaction.wait(6);
-    await verify(FlexablePaymentSplitter.address, [
-      USDC_ADDRESS,
+    await FlexableCommunity.deployTransaction.wait(6);
+    await verify(FlexableCommunity.address, [
+      MockERC20.address,
+      owner.address,
+      FlexableAuth.address,
+      FlexableVendor.address,
       FlexablePassNFT.address,
     ]);
   }

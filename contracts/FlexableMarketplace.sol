@@ -14,7 +14,7 @@ import "./IFlexableAuth.sol";
 error ItemExist();
 
 /**
- * @title TradeHub
+ * @title FlexableMarketplace
  * @dev This contract implements a decentralized marketplace for buying and selling NFTs.
  */
 contract FlexableMarketplace is
@@ -125,7 +125,7 @@ contract FlexableMarketplace is
     modifier onlyWhenItemIsForSale(uint256 itemId) {
         require(
             idToMarketItem[itemId].status == ItemStatus.SALE,
-            "TradeHub: Market item is not for sale"
+            "FlexableMarketplace: Market item is not for sale"
         );
         _;
     }
@@ -133,7 +133,7 @@ contract FlexableMarketplace is
     modifier onlyWhenItemIsForAuction(uint256 itemId) {
         require(
             idToMarketItem[itemId].status == ItemStatus.AUCTION,
-            "TradeHub: The auction has not started yet"
+            "FlexableMarketplace: The auction has not started yet"
         );
         _;
     }
@@ -141,7 +141,7 @@ contract FlexableMarketplace is
     modifier onlySeller(uint256 itemId) {
         require(
             idToMarketItem[itemId].seller == _msgSender(),
-            "TradeHub: Sender is not seller of this item"
+            "FlexableMarketplace: Sender is not seller of this item"
         );
         _;
     }
@@ -149,7 +149,7 @@ contract FlexableMarketplace is
     modifier onlyWhenNoBidder(uint256 itemId) {
         require(
             idToMarketItem[itemId].highestBidder == address(0),
-            "TradeHub : Auction is still running"
+            "FlexableMarketplace : Auction is still running"
         );
         _;
     }
@@ -158,7 +158,7 @@ contract FlexableMarketplace is
     modifier onlyWhenItemIsEligible(address nftContract) {
         require(
             checkERC1155(nftContract) || checkERC721(nftContract),
-            "TradeHub: Contract is not eligible for listing"
+            "FlexableMarketplace: Contract is not eligible for listing"
         );
         _;
     }
@@ -173,7 +173,7 @@ contract FlexableMarketplace is
     }
 
     /**
-     * @dev Constructor for TradeHub
+     * @dev Constructor for FlexableMarketplace
      * @param _platformFee The platform fee in basis points(10%)
      * @param _name The name of the marketplace
      * @param flowContract The address of the Access Master contract
@@ -379,14 +379,14 @@ contract FlexableMarketplace is
         bool forAuction,
         uint256 time
     ) external onlyWhenItemIsEligible(nftContract) returns (uint256 itemId) {
-        require(price > 0, "TradeHub: Price must be at least 1 wei");
+        require(price > 0, "FlexableMarketplace: Price must be at least 1 wei");
 
         if (checkERC721(nftContract)) {
             quantity = 1;
         }
 
         if (forAuction == true) {
-            require(time >= 60, "TradeHub: Time cannot be less than 1 min");
+            require(time >= 60, "FlexableMarketplace: Time cannot be less than 1 min");
         }
         itemId = _getItemId(nftContract, tokenId);
 
@@ -397,7 +397,7 @@ contract FlexableMarketplace is
             require(
                 IERC1155(nftContract).balanceOf(_msgSender(), tokenId) >=
                     quantity,
-                "TradeHub: Insufficient qunatity for listing!"
+                "FlexableMarketplace: Insufficient qunatity for listing!"
             );
             _transferItem(
                 nftContract,
@@ -410,7 +410,7 @@ contract FlexableMarketplace is
             // {ERC721} token listing
             require(
                 IERC721(nftContract).ownerOf(tokenId) == _msgSender(),
-                "TradeHub: Sender does not own the item"
+                "FlexableMarketplace: Sender does not own the item"
             );
             _transferItem(nftContract, _msgSender(), address(this), tokenId, 1);
         }
@@ -551,11 +551,11 @@ contract FlexableMarketplace is
         MarketItem memory _item = idToMarketItem[itemId];
         require(
             quantity <= _item.supply,
-            "TradeHub: greater quantity than available"
+            "FlexableMarketplace: greater quantity than available"
         );
         require(
             msg.value == _item.price * quantity,
-            "TradeHub: Pay Market Price to buy the NFT"
+            "FlexableMarketplace: Pay Market Price to buy the NFT"
         );
         string memory metadataURI = _getMetaDataURI(
             _item.nftContract,
@@ -614,7 +614,7 @@ contract FlexableMarketplace is
         uint256 time
     ) external onlySeller(itemId) onlyWhenItemIsForSale(itemId) {
         address nftContract = idToMarketItem[itemId].nftContract;
-        require(time >= 60, "TradeHub: Timer cannot be less than One Minute");
+        require(time >= 60, "FlexableMarketplace: Timer cannot be less than One Minute");
 
         uint256 price = idToMarketItem[itemId].price *
             idToMarketItem[itemId].supply;
@@ -648,11 +648,11 @@ contract FlexableMarketplace is
     ) external payable onlyWhenItemIsForAuction(itemId) {
         require(
             block.timestamp < idToMarketItem[itemId].auctioneEndTime,
-            "TradeHub: Time limit has been reached"
+            "FlexableMarketplace: Time limit has been reached"
         );
         require(
             msg.value > idToMarketItem[itemId].highestBid,
-            "TradeHub: value less than the highest Bid"
+            "FlexableMarketplace: value less than the highest Bid"
         );
 
         address lastHighestBidder = idToMarketItem[itemId].highestBidder;
@@ -740,7 +740,7 @@ contract FlexableMarketplace is
     ) external onlyWhenItemIsForAuction(itemId) {
         require(
             idToMarketItem[itemId].auctioneEndTime <= block.timestamp,
-            "TradeHub: Auction is still running"
+            "FlexableMarketplace: Auction is still running"
         );
         _endAuction(itemId);
     }
