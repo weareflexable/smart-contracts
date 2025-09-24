@@ -44,6 +44,8 @@
     "coverage": "hardhat coverage",
     "deploy": "hardhat run scripts/deploy.js",
     "deployVendor": "hardhat run scripts/deployVendor.js",
-    "verify": "npx hardhat verify --network $NETWORK $CONTRACT_ADDRESS FlexableNFT FLEX"
+    "deployCommunity": "hardhat run scripts/deployCommunity.js --network baseTestnet",
+    "verify": "npx hardhat verify --network $NETWORK $CONTRACT_ADDRESS FlexableNFT FLEX",
+    "buyPass": "hardhat run scripts/call/buyPass.js --network baseTestnet"
   }
 }

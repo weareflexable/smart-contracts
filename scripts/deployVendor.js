@@ -2,30 +2,15 @@ const fs = require("fs");
 const { ethers, run, network } = require("hardhat");
 
 async function main() {
-  /// DEPLOY FlexableAuth
-  console.log("Deploying FlexableAuth...");
-  const FlexableAuthFactory = await hre.ethers.getContractFactory(
-    "FlexableAuth"
-  );
-  const FlexableAuth = await FlexableAuthFactory.deploy();
-
-  await FlexableAuth.deployed();
-
-  console.log("FlexableAuth Contract Deployed to:", FlexableAuth.address);
-
-  /// VERIFY FlexableAuth
-  if (hre.network.name != "hardhat") {
-    await FlexableAuth.deployTransaction.wait(6);
-    await verify(FlexableAuth.address, []);
-  }
-
+  // Replace these with actual contract addresses after deployment
+  const FlexableAuthAddress = "0xc9D415bB5Bc285116a3f40C74048f40928218Ae3"; // Replace with actual FlexableAuth address
   /// DEPLOY FlexableVendor
   console.log("Deploying FlexableVendor...");
   const FlexableVendorFactory = await hre.ethers.getContractFactory(
     "FlexableVendor"
   );
   const FlexableVendor = await FlexableVendorFactory.deploy(
-    FlexableAuth.address
+    FlexableAuthAddress
   );
 
   await FlexableVendor.deployed();
@@ -35,13 +20,8 @@ async function main() {
   /// VERIFY FlexableVendor
   if (hre.network.name != "hardhat") {
     await FlexableVendor.deployTransaction.wait(6);
-    await verify(FlexableVendor.address, [FlexableAuth.address]);
+    await verify(FlexableVendor.address, [FlexableAuthAddress]);
   }
-
-  /// LOG DEPLOYMENT SUMMARY
-  console.log("\n=== DEPLOYMENT SUMMARY ===");
-  console.log(`FlexableAuth: ${FlexableAuth.address}`);
-  console.log(`FlexableVendor: ${FlexableVendor.address}`);
 }
 
 const verify = async (contractAddress, args) => {

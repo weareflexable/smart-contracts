@@ -100,15 +100,14 @@ contract FlexableCommunity is ReentrancyGuard, Context {
         address indexed manager,
         string name,
         uint256 managerFeeBP,
-        uint256 totalPrice
+        uint256 indexed totalPrice
     );
 
     event PassPurchased(
         uint256 indexed communityId,
-        uint256 indexed vendorId,
         address indexed buyer,
         uint256 price,
-        uint256 nftTokenId
+        uint256 indexed nftTokenId
     );
 
     event PaymentSplit(
@@ -117,10 +116,30 @@ contract FlexableCommunity is ReentrancyGuard, Context {
         string recipientType
     );
 
+    event VendorAdded(
+        address indexed to,
+        uint256 indexed tokenId,
+        string serviceMetadata,
+        uint256 price
+    );
+
     event FundsClaimed(address indexed recipient, uint256 amount);
 
     event PlatformFeeUpdated(uint256 newFeeBP);
     event VendorUpdated(uint256 indexed communityId, uint256 vendorId);
+    event ManagerFeeUpdated(uint256 indexed communityId, uint256 newFeeBP);
+    event CommunityActivated(uint256 indexed communityId);
+    event CommunityDeactivated(uint256 indexed communityId);
+    event CommunityPaused(uint256 indexed communityId);
+    event CommunityFlexableFeeUpdated(
+        uint256 indexed communityId,
+        uint256 newFeeBP
+    );
+    event FlexableAuthContractUpdated(address newContract);
+    event PassNFTUpdated(address newContract);
+    event FlexableVendorUpdated(address newContract);
+    event CurrencyUpdated(address newCurrency);
+    event PlatformWalletUpdated(address newWallet);
 
     // ===== MODIFIERS =====
 
@@ -179,6 +198,7 @@ contract FlexableCommunity is ReentrancyGuard, Context {
     // If one of the vendors if is inactive which manager trying to add , then user cannot add the whole , unless all the parties are active.
 
     function createCommunity(
+        address _managerWallet,
         string memory name,
         string memory baseURI,
         uint256 managerFeeBP,
@@ -194,7 +214,7 @@ contract FlexableCommunity is ReentrancyGuard, Context {
         Community storage community = communities[communityId];
         community.name = name;
         community.baseURI = baseURI;
-        community.managerWallet = _msgSender();
+        community.managerWallet = _managerWallet;
         community.managerFeeBP = managerFeeBP;
         community.status = Status.ACTIVE;
         community.vendorCount = uint8(vendors.length);
@@ -212,6 +232,12 @@ contract FlexableCommunity is ReentrancyGuard, Context {
                 "Vendor is not active"
             );
             community.vendors[i] = vendors[i];
+            emit VendorAdded(
+                _msgSender(),
+                vendors[i].vendorId,
+                vendors[i].metadata,
+                vendors[i].price
+            );
         }
 
         // changes - we will not take total price , rather we will take pass price.
@@ -263,14 +289,33 @@ contract FlexableCommunity is ReentrancyGuard, Context {
         if (address(nftPass) != address(0)) {
             tokenId = nftPass.mintPass(_msgSender(), 1, communityId, _uri);
         }
+        emit PassPurchased(communityId, _msgSender(), actualPrice, tokenId);
+    }
+
+    function delegateCommunityPurchase(
+        uint256 communityId,
+        address buyer,
+        string memory _uri
+    ) external nonReentrant onlyOperator {
+        require(
+            communities[communityId].status == Status.ACTIVE,
+            "Community is not active"
+        );
+        // Mint NFT pass to buyer
+        uint256 tokenId = 0;
+        if (address(nftPass) != address(0)) {
+            tokenId = nftPass.mintPass(buyer, 1, communityId, _uri);
+        }
+
         emit PassPurchased(
             communityId,
-            0, // vendorId not used in this simplified version
-            _msgSender(),
-            actualPrice,
+            buyer,
+            0, // No payment in this case
             tokenId
         );
     }
+
+    // =============================== INTERNAL FUNCTIONS ============================ //
 
     /**
      * @dev Internal function to split payments 🔥
@@ -349,24 +394,28 @@ contract FlexableCommunity is ReentrancyGuard, Context {
     ) external onlyManager(communityId) {
         require(share <= 1000, "Manager fee too high (max 10%)");
         communities[communityId].managerFeeBP = share;
+        emit ManagerFeeUpdated(communityId, share);
     }
 
     // ===== PLATFORM FUNCTIONS =====
     function activateCommunity(uint256 communityId) external onlyOperator {
         Community storage community = communities[communityId];
         community.status = Status.ACTIVE;
+        emit CommunityActivated(communityId);
     }
 
     function deactivateCommunity(
         uint256 communityId
     ) external onlyManagerOrOperator(communityId) {
         communities[communityId].status = Status.DEACTIVATED;
+        emit CommunityDeactivated(communityId);
     }
 
     function pauseCommunity(
         uint256 communityId
     ) external onlyManagerOrOperator(communityId) {
         communities[communityId].status = Status.PAUSED;
+        emit CommunityPaused(communityId);
     }
 
     function updateCommunityFlexableFee(
@@ -375,6 +424,7 @@ contract FlexableCommunity is ReentrancyGuard, Context {
     ) external onlyManagerOrOperator(communityId) {
         require(newFeeBP <= 1000, "Platform fee too high (max 10%)");
         communities[communityId].flexableFeeBP = newFeeBP;
+        emit CommunityFlexableFeeUpdated(communityId, newFeeBP);
     }
 
     function setFlexableAuthContract(
@@ -383,10 +433,12 @@ contract FlexableCommunity is ReentrancyGuard, Context {
         require(_flexableAuth != address(0), "Invalid flexable auth address");
         flexableAuthAddr = _flexableAuth;
         flexableAuth = IFlexableAuth(_flexableAuth);
+        emit FlexableAuthContractUpdated(_flexableAuth);
     }
 
     function setPassNFT(address _passNFT) external onlyOperator {
         nftPass = IFlexablePass(_passNFT);
+        emit PassNFTUpdated(_passNFT);
     }
 
     function setFlexableVendor(address _flexableVendor) external onlyOperator {
@@ -395,11 +447,13 @@ contract FlexableCommunity is ReentrancyGuard, Context {
             "Invalid vendor contract address"
         );
         flexableVendor = IFlexableVendor(_flexableVendor);
+        emit FlexableVendorUpdated(_flexableVendor);
     }
 
     function updateCurrency(address _currency) external onlyOperator {
         require(_currency != address(0), "Invalid currency address");
         currency = IERC20Metadata(_currency);
+        emit CurrencyUpdated(_currency);
     }
 
     //  ===== ADMIN FUNCTIONS =====
@@ -422,6 +476,7 @@ contract FlexableCommunity is ReentrancyGuard, Context {
             "Invalid wallet address"
         );
         flexableWallet = newWallet;
+        emit PlatformWalletUpdated(newWallet);
     }
 
     // ===== VIEW FUNCTIONS =====

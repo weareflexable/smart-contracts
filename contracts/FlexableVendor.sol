@@ -28,6 +28,22 @@ contract FlexableVendor is ERC721 {
         string serviceMetadata
     );
 
+    event VendorStatus(uint256 indexed tokenId, string name, bool status);
+
+    event VendorBurned(
+        uint256 indexed tokenId,
+        string name,
+        string serviceMetadata
+    );
+
+    event VendorWalletUpdated(
+        uint256 indexed tokenId,
+        address indexed oldWallet,
+        address indexed newWallet
+    );
+
+    event VendorURIUpdated(uint256 indexed tokenId, string newURI);
+
     constructor(
         address _flexableAuthAddr
     ) ERC721("FlexableVendor", "FLEXVENDOR") {
@@ -35,7 +51,6 @@ contract FlexableVendor is ERC721 {
     }
 
     // ===== MAIN FUNCTIONS =====
-    //Changes -
     //  Give an Array of VendorInfo , and create vendors for each of them.
     function createVendor(
         address to,
@@ -60,6 +75,7 @@ contract FlexableVendor is ERC721 {
     function setTokenURI(uint256 tokenId, string memory _uri) public {
         require(flexableAuth.isOperator(_msgSender()), "Not an operator");
         _tokenURIs[tokenId] = _uri;
+        emit VendorURIUpdated(tokenId, _uri);
     }
 
     function setVendorActive(uint256 tokenId, bool _isActive) public {
@@ -69,17 +85,32 @@ contract FlexableVendor is ERC721 {
             "Not the owner"
         );
         _vendorInfo[tokenId].isActive = _isActive;
-    }
-
-    function burnVendor(uint256 tokenId) public {
-        require(ownerOf(tokenId) == _msgSender(), "Not the owner");
-        _burn(tokenId);
+        emit VendorStatus(tokenId, _vendorInfo[tokenId].name, _isActive);
     }
 
     function updateVendorWallet(uint256 tokenId, address _wallet) public {
         require(ownerOf(tokenId) == _msgSender(), "Not the Owner");
         _vendorInfo[tokenId].payoutWallet = _wallet;
+        emit VendorWalletUpdated(
+            tokenId,
+            _vendorInfo[tokenId].payoutWallet,
+            _wallet
+        );
     }
+
+    function burnVendor(uint256 tokenId) public {
+        require(ownerOf(tokenId) == _msgSender(), "Not the owner");
+        _burn(tokenId);
+        emit VendorBurned(
+            tokenId,
+            _vendorInfo[tokenId].name,
+            _vendorInfo[tokenId].serviceMetadata
+        );
+        delete _vendorInfo[tokenId];
+        delete _tokenURIs[tokenId];
+    }
+
+    // ================================== VIEW FUNCTIONS =====================================//
 
     function tokenIdToVendorWallet(
         uint256 tokenId
